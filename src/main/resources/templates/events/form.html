@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Post Event — CareerConnect</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}"/>
+  <style>
+    .back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--text-secondary); text-decoration: none; margin-bottom: 20px; }
+    .back-link svg { width: 16px; height: 16px; stroke: currentColor; fill: none; flex-shrink: 0; }
+    .back-link:hover { color: var(--primary); }
+    .form-card { background: white; border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: 40px 48px; }
+    .form-card-title { font-size: 22px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px; }
+    .form-card-subtitle { font-size: 13px; color: var(--text-secondary); margin-bottom: 32px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .form-group-full { grid-column: 1 / -1; }
+    .form-actions { display: flex; gap: 12px; margin-top: 32px; justify-content: flex-end; }
+  </style>
+</head>
+<body class="page-wrapper">
+
+<div th:replace="~{fragments/layout :: dashNavbar}"></div>
+
+<div class="dashboard-layout no-right">
+  <div th:replace="~{fragments/layout :: autoSidebar(user=${user}, activePage='events')}"></div>
+
+  <main>
+
+
+    <a th:href="@{/events}" class="back-link">
+      <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Back to Events
+    </a>
+
+    <div class="form-card">
+      <div class="form-card-title" th:text="${eventId != null ? 'Edit Event' : 'Post a New Event'}">Post Event</div>
+      <div class="form-card-subtitle">Share a hackathon, workshop, competition, or webinar with job seekers.</div>
+
+      <div th:if="${successMsg}" class="alert alert-success" style="margin-bottom:20px;" th:text="${successMsg}"></div>
+      <div th:if="${errorMsg}" class="alert alert-danger" style="margin-bottom:20px;" th:text="${errorMsg}"></div>
+
+      <form th:action="${eventId != null ? '/employer/events/' + eventId + '/edit' : '/employer/events'}"
+            method="post" th:object="${eventDto}">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+        <div class="form-grid">
+          <!-- Title -->
+          <div class="form-group form-group-full">
+            <label class="form-label">Event Title <span style="color:red;">*</span></label>
+            <input type="text" th:field="*{title}" class="form-control"
+                   placeholder="e.g. HackFest 2025 National Hackathon" required/>
+          </div>
+
+          <!-- Date -->
+          <div class="form-group">
+            <label class="form-label">Event Date <span style="color:red;">*</span></label>
+            <input type="date" th:field="*{eventDate}" class="form-control" required/>
+          </div>
+
+          <!-- Category -->
+          <div class="form-group">
+            <label class="form-label">Category <span style="color:red;">*</span></label>
+            <select th:field="*{category}" class="form-control" required>
+              <option value="">-- Select category --</option>
+              <option th:each="cat : ${categories}"
+                      th:value="${cat.name()}"
+                      th:text="${cat.name().replace('_',' ')}">Category</option>
+            </select>
+          </div>
+
+          <!-- Organizer -->
+          <div class="form-group">
+            <label class="form-label">Organiser</label>
+            <input type="text" th:field="*{organizer}" class="form-control"
+                   placeholder="e.g. IEEE, Google, IIT Bombay"/>
+          </div>
+
+          <!-- Location -->
+          <div class="form-group">
+            <label class="form-label">Location</label>
+            <input type="text" th:field="*{location}" class="form-control"
+                   placeholder="e.g. Online / Mumbai / Hybrid"/>
+          </div>
+
+          <!-- Registration Link -->
+          <div class="form-group form-group-full">
+            <label class="form-label">Registration Link</label>
+            <input type="url" th:field="*{registrationLink}" class="form-control"
+                   placeholder="https://devpost.com/your-event"/>
+          </div>
+
+          <!-- Description -->
+          <div class="form-group form-group-full">
+            <label class="form-label">Description</label>
+            <textarea th:field="*{description}" class="form-control" rows="5"
+                      placeholder="Describe the event, prizes, eligibility, schedule..."></textarea>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <a th:href="@{/events}" class="btn btn-ghost">Cancel</a>
+          <button type="submit" class="btn btn-primary"
+                  th:text="${eventId != null ? 'Update Event' : 'Publish Event'}">Publish</button>
+        </div>
+      </form>
+    </div>
+  </main>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

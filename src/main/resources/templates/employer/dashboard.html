@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Employer Dashboard | CareerConnect</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}"/>
+</head>
+<body class="page-wrapper">
+
+<!-- Navigation -->
+<div th:replace="~{fragments/layout :: dashNavbar}"></div>
+
+<div class="dashboard-layout">
+
+  <!-- Sidebar -->
+  <div th:replace="~{fragments/layout :: autoSidebar(user=${user}, activePage='dashboard')}"></div>
+
+  <!-- Main Content -->
+  <main>
+    <div th:if="${successMsg != null}" class="alert alert-success">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+      <span th:text="${successMsg}"></span>
+    </div>
+
+    <!-- Welcome -->
+    <div class="card mb-3">
+      <div class="flex-between">
+        <div>
+          <h1 style="font-size:18px; font-weight:700;">
+            Welcome, <span style="color:var(--primary);" th:text="${user.name}">Name</span>! 👋
+          </h1>
+          <p class="text-muted mt-1"
+             th:text="${user.company != null ? 'Managing jobs for ' + user.company : 'Start posting jobs to find the best talent.'}">Subtitle</p>
+        </div>
+        <a th:href="@{/employer/post-job}" class="btn btn-primary">
+          <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+          Post a Job
+        </a>
+      </div>
+    </div>
+
+    <div class="metrics-bar">
+      <a th:href="@{/employer/my-jobs}" class="metric-item primary">
+        <div class="metric-value" th:text="${totalJobs}">0</div>
+        <div class="metric-label">Jobs Posted</div>
+      </a>
+      <a th:href="@{/employer/my-jobs}" class="metric-item purple">
+        <div class="metric-value" th:text="${totalApplicants}">0</div>
+        <div class="metric-label">Total Applicants</div>
+      </a>
+      <a th:href="@{/employer/my-jobs}" class="metric-item success">
+        <div class="metric-value" th:text="${shortlisted}">0</div>
+        <div class="metric-label">Shortlisted</div>
+      </a>
+    </div>
+
+    <!-- Recent Jobs -->
+    <div class="card">
+      <div class="section-header">
+        <h2 class="section-title">Recent Job Postings</h2>
+        <a th:href="@{/employer/my-jobs}" style="font-size:13px; color:var(--primary); font-weight:600;">View All →</a>
+      </div>
+
+      <div th:if="${jobs.empty}" class="empty-state">
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24" stroke-width="2"><path d="M20 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        </div>
+        <div class="empty-title">No jobs posted yet</div>
+        <div class="empty-desc">Post your first job listing and start receiving applications.</div>
+        <a th:href="@{/employer/post-job}" class="btn btn-primary">Post a Job</a>
+      </div>
+
+      <div th:if="${!jobs.empty}" style="display:flex; flex-direction:column; gap:10px;">
+        <div th:each="job : ${jobs}" class="job-card">
+          <div class="job-icon" th:text="${job.company != null and !job.company.isEmpty() ? job.company.substring(0,1).toUpperCase() : 'J'}">J</div>
+          <div class="job-info">
+            <div class="job-title" th:text="${job.title}">Title</div>
+            <div class="job-company" th:text="${job.location + (job.type != null ? ' · ' + job.type : '')}">Location</div>
+          </div>
+          <div class="job-actions">
+            <span class="badge"
+                  th:classappend="${job.status.name() == 'OPEN' ? 'badge-success' : 'badge-secondary'}"
+                  th:text="${job.status}">Status</span>
+            <a th:href="@{/employer/applicants/{id}(id=${job.id})}" class="btn btn-outline btn-sm">View Applicants</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Right sidebar -->
+  <aside class="dashboard-right">
+    <div class="card">
+      <div class="card-title">Quick Actions</div>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <a th:href="@{/employer/post-job}" class="btn btn-primary btn-full">
+          <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+          Post New Job
+        </a>
+        <a th:href="@{/employer/my-jobs}" class="btn btn-outline btn-full">
+          <svg viewBox="0 0 24 24" stroke-width="2"><path d="M20 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+          Manage Jobs
+        </a>
+      </div>
+    </div>
+    <div class="card mt-3">
+      <div class="card-title">Tips for Employers</div>
+      <ul style="display:flex; flex-direction:column; gap:10px;">
+        <li class="feature-list-item">Write clear job descriptions</li>
+        <li class="feature-list-item">Specify salary range to attract candidates</li>
+        <li class="feature-list-item">Respond to applicants quickly</li>
+        <li class="feature-list-item">Keep listings up to date</li>
+      </ul>
+    </div>
+  </aside>
+
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Premium Plans | CareerConnect</title>
+  <meta name="description" content="Upgrade to CareerConnect Premium and get a golden profile ring, boosted visibility, and priority placement in employer searches."/>
+  <link rel="stylesheet" th:href="@{/css/main.css}"/>
+  <style>
+    /* ── Premium Page Specific Styles ── */
+    .premium-hero {
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 40%, #1a1a1a 100%);
+      padding: 64px 5% 80px;
+      text-align: center;
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+    .premium-hero::before {
+      content: '';
+      position: absolute;
+      top: -120px; left: 50%;
+      transform: translateX(-50%);
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(255,215,0,0.12) 0%, transparent 65%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .premium-hero::after {
+      content: '';
+      position: absolute;
+      bottom: -60px; right: -60px;
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(255,215,0,0.08) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .premium-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,215,0,0.15);
+      border: 1px solid rgba(255,215,0,0.4);
+      color: #FFD700;
+      padding: 6px 18px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 24px;
+      letter-spacing: 0.03em;
+    }
+    .premium-hero h1 {
+      font-size: 48px;
+      font-weight: 800;
+      color: white;
+      margin-bottom: 16px;
+      line-height: 1.15;
+    }
+    .premium-hero h1 span {
+      background: linear-gradient(90deg, #FFD700, #FFA500);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .premium-hero p {
+      font-size: 17px;
+      color: rgba(255,255,255,0.75);
+      max-width: 540px;
+      margin: 0 auto 0;
+      line-height: 1.7;
+    }
+
+    /* ── Plans Grid ── */
+    .plans-section {
+      max-width: 1100px;
+      margin: -56px auto 0;
+      padding: 0 5% 80px;
+      position: relative;
+      z-index: 10;
+    }
+    .plans-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 24px;
+    }
+    @media (max-width: 900px) { .plans-grid { grid-template-columns: 1fr; max-width: 440px; margin: 0 auto; } }
+
+    .plan-card {
+      background: white;
+      border: 2px solid #e5e7eb;
+      border-radius: 24px;
+      padding: 36px 32px;
+      position: relative;
+      transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    }
+    .plan-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 20px 48px rgba(0,0,0,0.13);
+    }
+    .plan-card.popular {
+      border-color: #FFD700;
+      box-shadow: 0 0 0 4px rgba(255,215,0,0.12), 0 20px 48px rgba(255,165,0,0.15);
+      transform: scale(1.03);
+    }
+    .plan-card.popular:hover { transform: scale(1.03) translateY(-6px); }
+    .popular-tag {
+      position: absolute;
+      top: -14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(90deg, #FFD700, #FFA500);
+      color: #1a1a1a;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 18px;
+      border-radius: 999px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .plan-icon {
+      width: 56px; height: 56px;
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px;
+      margin-bottom: 20px;
+    }
+    .plan-icon.free    { background: #f1f5f9; }
+    .plan-icon.gold    { background: linear-gradient(135deg, #fef9c3, #fde68a); }
+    .plan-icon.pro     { background: linear-gradient(135deg, #ede9fe, #c4b5fd); }
+    .plan-name {
+      font-size: 22px;
+      font-weight: 800;
+      color: #1a1a1a;
+      margin-bottom: 6px;
+    }
+    .plan-price {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+      margin-bottom: 4px;
+    }
+    .plan-price .amount {
+      font-size: 40px;
+      font-weight: 800;
+      color: #1a1a1a;
+    }
+    .plan-price .currency { font-size: 20px; font-weight: 700; color: #6b7280; margin-bottom: 4px; }
+    .plan-price .period  { font-size: 14px; color: #9ca3af; font-weight: 500; }
+    .plan-desc { font-size: 13px; color: #6b7280; margin-bottom: 28px; line-height: 1.6; }
+    .plan-features { display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; }
+    .plan-feature {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      color: #374151;
+    }
+    .plan-feature .check {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      font-size: 11px;
+    }
+    .check.yes { background: #dcfce7; color: #16a34a; }
+    .check.no  { background: #f1f5f9; color: #9ca3af; }
+    .plan-feature.dimmed { color: #9ca3af; }
+
+    .btn-premium {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.25s;
+      border: 2px solid transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-free    { background: #f1f5f9; color: #6b7280; border-color: #e5e7eb; }
+    .btn-free:hover { background: #e5e7eb; }
+    .btn-gold    { background: linear-gradient(135deg, #FFD700, #FFA500); color: #1a1a1a; }
+    .btn-gold:hover  { box-shadow: 0 8px 24px rgba(255,165,0,0.35); transform: translateY(-2px); }
+    .btn-pro     { background: linear-gradient(135deg, #7c3aed, #a855f7); color: white; }
+    .btn-pro:hover   { box-shadow: 0 8px 24px rgba(124,58,237,0.35); transform: translateY(-2px); }
+
+    /* active state */
+    .plan-card.active-plan { border-color: #16a34a; }
+    .active-label {
+      position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+      background: #16a34a; color: white;
+      font-size: 11px; font-weight: 800;
+      padding: 4px 18px; border-radius: 999px;
+      white-space: nowrap; letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .btn-cancel {
+      background: white; color: #dc2626; border-color: #fecaca;
+    }
+    .btn-cancel:hover { background: #fef2f2; }
+
+    /* ── Demo Preview ── */
+    .demo-section {
+      background: #f8fafc;
+      border-top: 1px solid #e5e7eb;
+      padding: 64px 5%;
+    }
+    .demo-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: center;
+    }
+    @media (max-width: 700px) { .demo-inner { grid-template-columns: 1fr; } }
+    .demo-avatars {
+      display: flex;
+      gap: 32px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .demo-avatar-wrap { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+    .demo-avatar {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 32px; font-weight: 800; color: #4338ca;
+      position: relative;
+    }
+    .demo-avatar.gold-ring {
+      box-shadow: 0 0 0 4px #FFD700, 0 0 0 7px rgba(255,215,0,0.25), 0 0 20px rgba(255,215,0,0.3);
+      animation: goldPulse 2.5s ease-in-out infinite;
+    }
+    @keyframes goldPulse {
+      0%, 100% { box-shadow: 0 0 0 4px #FFD700, 0 0 0 7px rgba(255,215,0,0.2), 0 0 20px rgba(255,215,0,0.25); }
+      50%       { box-shadow: 0 0 0 4px #FFA500, 0 0 0 10px rgba(255,165,0,0.3), 0 0 32px rgba(255,165,0,0.35); }
+    }
+    .demo-avatar-label { font-size: 13px; font-weight: 600; color: #374151; }
+    .demo-avatar-sublabel { font-size: 11px; color: #9ca3af; }
+
+    .demo-text h2 { font-size: 28px; font-weight: 800; color: #1a1a1a; margin-bottom: 12px; line-height: 1.25; }
+    .demo-text p  { font-size: 14px; color: #6b7280; line-height: 1.7; margin-bottom: 20px; }
+    .demo-benefit {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 14px; color: #374151; margin-bottom: 10px; font-weight: 600;
+    }
+    .demo-benefit .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: linear-gradient(135deg, #FFD700, #FFA500);
+      flex-shrink: 0;
+    }
+
+    /* ── FAQ ── */
+    .faq-section { max-width: 680px; margin: 0 auto; padding: 64px 5%; }
+    .faq-section h2 { font-size: 28px; font-weight: 800; text-align: center; margin-bottom: 32px; }
+    .faq-item { border-bottom: 1px solid #e5e7eb; padding: 20px 0; }
+    .faq-q { font-size: 15px; font-weight: 700; color: #1a1a1a; margin-bottom: 8px; }
+    .faq-a { font-size: 14px; color: #6b7280; line-height: 1.7; }
+
+    /* modal */
+    .payment-modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(4px);
+      z-index: 9000;
+      align-items: center;
+      justify-content: center;
+    }
+    .payment-modal-overlay.open { display: flex; }
+    .payment-modal {
+      background: white;
+      border-radius: 24px;
+      padding: 40px 36px;
+      width: 100%;
+      max-width: 460px;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.25);
+      position: relative;
+      animation: modalPop 0.3s cubic-bezier(0.16,1,0.3,1);
+    }
+    @keyframes modalPop {
+      from { opacity: 0; transform: scale(0.9) translateY(20px); }
+      to   { opacity: 1; transform: scale(1)   translateY(0); }
+    }
+    .modal-close {
+      position: absolute; top: 16px; right: 16px;
+      background: #f1f5f9; border: none; border-radius: 50%;
+      width: 32px; height: 32px; cursor: pointer; font-size: 18px;
+      display: flex; align-items: center; justify-content: center;
+      color: #6b7280; transition: all 0.2s;
+    }
+    .modal-close:hover { background: #e5e7eb; color: #1a1a1a; }
+    .modal-header { text-align: center; margin-bottom: 28px; }
+    .modal-icon { font-size: 48px; margin-bottom: 12px; }
+    .modal-header h2 { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+    .modal-header p  { font-size: 14px; color: #6b7280; }
+    .mock-card-form { display: flex; flex-direction: column; gap: 14px; }
+    .mock-input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e5e7eb;
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: inherit;
+      color: #1a1a1a;
+      transition: border-color 0.2s;
+      background: #f8fafc;
+    }
+    .mock-input:focus { outline: none; border-color: #FFD700; background: white; }
+    .mock-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .mock-secure {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: #9ca3af;
+      margin-top: 4px;
+    }
+    .mock-secure::before { content: '🔒'; }
+    .demo-notice {
+      background: #fef9c3;
+      border: 1px solid #fde68a;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: #92400e;
+      font-weight: 600;
+      margin-top: 4px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body class="page-wrapper">
+
+<div th:replace="~{fragments/layout :: dashNavbar}"></div>
+
+<!-- Hero -->
+<div class="premium-hero">
+  <div class="premium-badge">⭐ CareerConnect Premium</div>
+  <h1>Stand Out.<br/><span>Get Noticed Faster.</span></h1>
+  <p>Upgrade your profile to Premium and gain a <strong style="color:#FFD700;">golden ring</strong> that signals your commitment to employers. Premium members get up to 3× more profile views.</p>
+</div>
+
+<!-- Flash messages -->
+<div style="max-width:1100px;margin:20px auto 0;padding:0 5%;">
+  <div th:if="${successMsg}" class="alert alert-success">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+    <span th:text="${successMsg}"></span>
+  </div>
+</div>
+
+<!-- Plans -->
+<section class="plans-section">
+  <div class="plans-grid">
+
+    <!-- Free -->
+    <div class="plan-card" th:classappend="${!user.premium ? ' active-plan' : ''}">
+      <span class="active-label" th:if="${!user.premium}">✓ Current Plan</span>
+      <div class="plan-icon free">🆓</div>
+      <div class="plan-name">Free</div>
+      <div class="plan-price">
+        <span class="currency">₹</span>
+        <span class="amount">0</span>
+        <span class="period">/ month</span>
+      </div>
+      <div class="plan-desc">The essentials to start your job search journey.</div>
+      <div class="plan-features">
+        <div class="plan-feature"><span class="check yes">✓</span> Browse all job listings</div>
+        <div class="plan-feature"><span class="check yes">✓</span> Apply to unlimited jobs</div>
+        <div class="plan-feature"><span class="check yes">✓</span> Resume upload &amp; skill extraction</div>
+        <div class="plan-feature dimmed"><span class="check no">–</span> Gold ring on profile</div>
+        <div class="plan-feature dimmed"><span class="check no">–</span> Boosted visibility to employers</div>
+        <div class="plan-feature dimmed"><span class="check no">–</span> Priority in applicant lists</div>
+      </div>
+      <button class="btn-premium btn-free" disabled>Current Plan</button>
+    </div>
+
+    <!-- Gold (Popular) -->
+    <div class="plan-card popular">
+      <span class="popular-tag">⭐ Most Popular</span>
+      <div class="plan-icon gold">👑</div>
+      <div class="plan-name">Gold</div>
+      <div class="plan-price">
+        <span class="currency">₹</span>
+        <span class="amount">299</span>
+        <span class="period">/ month</span>
+      </div>
+      <div class="plan-desc">Perfect for active job seekers who want maximum visibility.</div>
+      <div class="plan-features">
+        <div class="plan-feature"><span class="check yes">✓</span> Everything in Free</div>
+        <div class="plan-feature"><span class="check yes">✓</span> <strong>Gold ring on profile picture</strong></div>
+        <div class="plan-feature"><span class="check yes">✓</span> Boosted visibility to employers</div>
+        <div class="plan-feature"><span class="check yes">✓</span> Priority in applicant listings</div>
+        <div class="plan-feature"><span class="check yes">✓</span> "Premium" badge on profile</div>
+        <div class="plan-feature dimmed"><span class="check no">–</span> Direct recruiter messages</div>
+      </div>
+      <div th:if="${user.premium}">
+        <button class="btn-premium btn-gold" disabled>✓ Active Plan</button>
+        <form th:action="@{/applicant/premium/cancel}" method="post" style="margin-top:10px;">
+          <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+          <button type="submit" class="btn-premium btn-cancel">Cancel Subscription</button>
+        </form>
+      </div>
+      <div th:if="${!user.premium}">
+        <button class="btn-premium btn-gold" onclick="openModal('Gold', '₹299/mo')">👑 Upgrade to Gold</button>
+      </div>
+    </div>
+
+    <!-- Pro -->
+    <div class="plan-card">
+      <div class="plan-icon pro">🚀</div>
+      <div class="plan-name">Pro</div>
+      <div class="plan-price">
+        <span class="currency">₹</span>
+        <span class="amount">599</span>
+        <span class="period">/ month</span>
+      </div>
+      <div class="plan-desc">For power users who want every competitive edge available.</div>
+      <div class="plan-features">
+        <div class="plan-feature"><span class="check yes">✓</span> Everything in Gold</div>
+        <div class="plan-feature"><span class="check yes">✓</span> Direct recruiter messages</div>
+        <div class="plan-feature"><span class="check yes">✓</span> AI-generated cover letters</div>
+        <div class="plan-feature"><span class="check yes">✓</span> Interview preparation tips</div>
+        <div class="plan-feature"><span class="check yes">✓</span> Dedicated career advisor</div>
+        <div class="plan-feature"><span class="check yes">✓</span> Salary negotiation guide</div>
+      </div>
+      <button class="btn-premium btn-pro" th:if="${!user.premium}" onclick="openModal('Pro', '₹599/mo')">🚀 Upgrade to Pro</button>
+      <button class="btn-premium btn-pro" th:if="${user.premium}" onclick="openModal('Pro', '₹599/mo')">🚀 Switch to Pro</button>
+    </div>
+
+  </div>
+</section>
+
+<!-- Demo Preview -->
+<section class="demo-section">
+  <div class="demo-inner">
+    <div class="demo-avatars">
+      <div class="demo-avatar-wrap">
+        <div class="demo-avatar">A</div>
+        <div class="demo-avatar-label">Free User</div>
+        <div class="demo-avatar-sublabel">Standard profile</div>
+      </div>
+      <div class="demo-avatar-wrap">
+        <div class="demo-avatar gold-ring">B</div>
+        <div class="demo-avatar-label">Premium User</div>
+        <div class="demo-avatar-sublabel">✨ Golden ring</div>
+      </div>
+    </div>
+    <div class="demo-text">
+      <h2>How the Gold Ring Helps You</h2>
+      <p>Employers browsing applicant profiles immediately notice the animated golden ring — a signal that you are a serious, committed candidate.</p>
+      <div class="demo-benefit"><span class="dot"></span> 3× more profile views from employers</div>
+      <div class="demo-benefit"><span class="dot"></span> Appear at top of applicant lists</div>
+      <div class="demo-benefit"><span class="dot"></span> Gold "Premium" badge next to your name</div>
+      <div class="demo-benefit"><span class="dot"></span> Stand out in a competitive market</div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq-section">
+  <h2>Frequently Asked Questions</h2>
+  <div class="faq-item">
+    <div class="faq-q">Is this a real payment?</div>
+    <div class="faq-a">No — this is a simulation for demonstration purposes. No real money will be charged. Clicking "Pay" simply activates your premium status.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">Where does the gold ring appear?</div>
+    <div class="faq-a">The animated golden ring appears around your profile picture in the sidebar, and around your avatar in the employer's applicant view. It glows to grab attention.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">Can I cancel anytime?</div>
+    <div class="faq-a">Yes. You can cancel your subscription from this page at any time and your profile will revert to the standard look immediately.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">How many job seekers have Premium?</div>
+    <div class="faq-a">Premium members are still rare, which means your gold ring will stand out even more to recruiters.</div>
+  </div>
+</section>
+
+<!-- Payment Modal -->
+<div class="payment-modal-overlay" id="paymentModal">
+  <div class="payment-modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-header">
+      <div class="modal-icon">👑</div>
+      <h2>Complete Your Upgrade</h2>
+      <p id="modalPlanLabel">Upgrading to Gold — ₹299/mo</p>
+    </div>
+
+    <div class="demo-notice">
+      🎭 Demo Mode — No real payment is processed
+    </div>
+
+    <form th:action="@{/applicant/premium/activate}" method="post" style="margin-top:20px;">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+      <input type="hidden" name="plan" id="planInput" value="Gold"/>
+      <div class="mock-card-form">
+        <input class="mock-input" type="text" placeholder="Cardholder Name" value="Demo User" readonly/>
+        <input class="mock-input" type="text" placeholder="Card Number" value="4242 4242 4242 4242" readonly/>
+        <div class="mock-row">
+          <input class="mock-input" type="text" placeholder="MM/YY" value="12/28" readonly/>
+          <input class="mock-input" type="text" placeholder="CVC" value="•••" readonly/>
+        </div>
+        <span class="mock-secure">All transactions are secure and encrypted</span>
+        <button type="submit" class="btn-premium btn-gold" style="margin-top:8px;">
+          ✨ Activate Premium Now
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+<script>
+  function openModal(plan, price) {
+    document.getElementById('planInput').value = plan;
+    document.getElementById('modalPlanLabel').textContent = `Upgrading to ${plan} — ${price}`;
+    document.getElementById('paymentModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeModal() {
+    document.getElementById('paymentModal').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  // Close on overlay click
+  document.getElementById('paymentModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+</script>
+</body>
+</html>

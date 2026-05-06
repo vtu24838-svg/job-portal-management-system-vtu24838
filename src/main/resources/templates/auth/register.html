@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Create Account — CareerConnect</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}"/>
+  <style>
+    .register-page {
+      min-height: 100vh;
+      display: flex;
+      background: linear-gradient(135deg, #f0f4ff 0%, #e8f1fb 100%);
+    }
+    /* Left panel */
+    .register-left {
+      flex: 0 0 420px;
+      background: linear-gradient(160deg, #1a1a1a 0%, #333333 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 48px 40px;
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+    .register-left::before {
+      content: '';
+      position: absolute;
+      top: -80px; right: -80px;
+      width: 300px; height: 300px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 50%;
+    }
+    .register-left::after {
+      content: '';
+      position: absolute;
+      bottom: -60px; left: -60px;
+      width: 220px; height: 220px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 50%;
+    }
+    .reg-brand {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 48px;
+      position: relative; z-index: 1;
+    }
+    .reg-brand-logo {
+      width: 44px; height: 44px;
+      background: white;
+      color: #1a1a1a;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 18px;
+      letter-spacing: -1px;
+    }
+    .reg-brand-name { font-size: 22px; font-weight: 700; }
+
+    /* Gender avatar preview */
+    .avatar-preview {
+      position: relative; z-index: 1;
+      margin-bottom: 36px;
+      text-align: center;
+    }
+    .avatar-circle {
+      width: 120px; height: 120px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+      border: 3px solid rgba(255,255,255,0.5);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 16px;
+      transition: all 0.4s ease;
+      overflow: hidden;
+    }
+    .avatar-circle svg { width: 80px; height: 80px; }
+    .avatar-name { font-size: 16px; font-weight: 600; }
+    .avatar-role { font-size: 13px; opacity: 0.8; margin-top: 4px; }
+
+    .left-features {
+      position: relative; z-index: 1;
+      width: 100%;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .left-feature {
+      display: flex; align-items: center; gap: 12px;
+      font-size: 14px; opacity: 0.9;
+    }
+    .left-feature-icon {
+      width: 32px; height: 32px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .left-feature-icon svg { width: 16px; height: 16px; stroke: white; fill: none; }
+
+    /* Right panel */
+    .register-right {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px;
+      overflow-y: auto;
+    }
+    .register-form-card {
+      background: white;
+      border-radius: 20px;
+      padding: 40px 44px;
+      width: 100%;
+      max-width: 520px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.10);
+    }
+    .reg-title { font-size: 22px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px; }
+    .reg-subtitle { font-size: 13px; color: var(--text-secondary); margin-bottom: 28px; }
+
+    /* ── Step progress indicator ─────────────────────────── */
+    .step-progress {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 32px;
+    }
+    .step-dot {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700;
+      color: var(--text-muted);
+      background: white;
+      transition: all 0.3s ease;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 1;
+    }
+    .step-dot.active {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 0 0 4px rgba(26,26,26,0.15);
+    }
+    .step-dot.completed {
+      border-color: #22c55e;
+      background: #22c55e;
+      color: white;
+    }
+    .step-line {
+      flex: 1;
+      height: 2px;
+      background: var(--border);
+      transition: background 0.3s ease;
+      max-width: 48px;
+    }
+    .step-line.completed { background: #22c55e; }
+
+    /* ── Step panels ──────────────────────────────────────── */
+    .step-panel { display: none; }
+    .step-panel.active { display: block; }
+
+    .step-heading {
+      font-size: 15px; font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+    .step-desc {
+      font-size: 13px; color: var(--text-secondary);
+      margin-bottom: 20px;
+    }
+
+    /* Gender cards */
+    .gender-select { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+    .gender-option input[type="radio"] { display: none; }
+    .gender-label {
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      padding: 20px 12px;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 13px; font-weight: 600;
+      color: var(--text-secondary);
+      text-align: center;
+      background: white;
+    }
+    .gender-label:hover {
+      border-color: #93c5fd;
+      background: #f0f9ff;
+    }
+    .gender-avatar-svg { width: 56px; height: 56px; }
+    .gender-option input:checked + .gender-label {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(10,102,194,0.12);
+    }
+
+    /* Role cards */
+    .role-select { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+    .role-option input[type="radio"] { display: none; }
+    .role-label {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      padding: 20px 10px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 13px; font-weight: 500;
+      color: var(--text-secondary);
+      text-align: center;
+    }
+    .role-label:hover {
+      border-color: #93c5fd;
+      background: #f0f9ff;
+    }
+    .role-label svg { width: 26px; height: 26px; stroke: currentColor; fill: none; }
+    .role-option input:checked + .role-label {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(26,26,26,0.12);
+    }
+
+    .section-tag {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.8px; color: var(--text-muted);
+      margin-bottom: 10px; margin-top: 20px;
+    }
+    .password-strength { height: 3px; border-radius: 2px; margin-top: 6px; background: var(--border); overflow: hidden; }
+    .password-strength-fill { height: 100%; width: 0; border-radius: 2px; transition: width 0.3s, background 0.3s; }
+
+    /* ── Navigation buttons ───────────────────────────────── */
+    .step-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 24px;
+      gap: 12px;
+    }
+    .step-nav.single { justify-content: flex-end; }
+
+    .btn-nav {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 22px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+    }
+    .btn-nav-back {
+      background: #f1f5f9;
+      color: var(--text-secondary);
+    }
+    .btn-nav-back:hover {
+      background: #e2e8f0;
+      color: var(--text-primary);
+    }
+    .btn-nav-next {
+      background: var(--primary);
+      color: white;
+      margin-left: auto;
+    }
+    .btn-nav-next:hover {
+      background: #000000;
+      box-shadow: 0 4px 14px rgba(26,26,26,0.35);
+      transform: translateY(-1px);
+    }
+    .btn-nav svg {
+      width: 16px; height: 16px;
+      stroke: currentColor; fill: none;
+      stroke-width: 2.5;
+    }
+
+    .nav-arrow-icon {
+      display: inline-flex;
+      width: 16px; height: 16px;
+    }
+
+    @media (max-width: 860px) {
+      .register-left { display: none; }
+      .register-form-card { padding: 32px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="register-page">
+
+  <!-- ─── Left Brand Panel ─────────────────────────────────── -->
+  <div class="register-left">
+    <div class="reg-brand">
+      <div class="reg-brand-logo">CC</div>
+      <span class="reg-brand-name">CareerConnect</span>
+    </div>
+
+    <!-- Live Avatar Preview -->
+    <div class="avatar-preview">
+      <div class="avatar-circle" id="previewAvatar">
+        <!-- default neutral avatar -->
+        <svg id="avatarSvg" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="40" cy="28" r="16" fill="rgba(255,255,255,0.5)"/>
+          <ellipse cx="40" cy="72" rx="26" ry="18" fill="rgba(255,255,255,0.3)"/>
+        </svg>
+      </div>
+      <div id="previewName" style="font-size:16px; font-weight:600;">Your Name</div>
+      <div id="previewRole" style="font-size:13px; opacity:0.8; margin-top:4px;">Job Seeker</div>
+    </div>
+
+    <div class="left-features">
+      <div class="left-feature">
+        <div class="left-feature-icon">
+          <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+        <span>Browse 50+ categorised job listings</span>
+      </div>
+      <div class="left-feature">
+        <div class="left-feature-icon">
+          <svg viewBox="0 0 24 24" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+        </div>
+        <span>Apply with your resume in one click</span>
+      </div>
+      <div class="left-feature">
+        <div class="left-feature-icon">
+          <svg viewBox="0 0 24 24" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.35 2 2 0 0 1 3.59 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.51a16 16 0 0 0 6 6l.48-.48a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16.92z"/></svg>
+        </div>
+        <span>Track application status in real time</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Right Form Panel ─────────────────────────────────── -->
+  <div class="register-right">
+    <div class="register-form-card">
+      <div class="reg-title">Create your account</div>
+      <div class="reg-subtitle">Join thousands of professionals on CareerConnect</div>
+
+      <!-- Error -->
+      <div th:if="${errorMsg}" class="alert alert-danger" style="margin-bottom:16px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        <span th:text="${errorMsg}">Error</span>
+      </div>
+
+      <!-- ── Step Progress Bar ───────────────────────────────── -->
+      <div class="step-progress">
+        <div class="step-dot active" id="dot-1">1</div>
+        <div class="step-line" id="line-1"></div>
+        <div class="step-dot" id="dot-2">2</div>
+        <div class="step-line" id="line-2"></div>
+        <div class="step-dot" id="dot-3">3</div>
+        <div class="step-line" id="line-3"></div>
+        <div class="step-dot" id="dot-4">4</div>
+        <div class="step-line" id="line-4"></div>
+        <div class="step-dot" id="dot-5">5</div>
+      </div>
+
+      <form action="/register" method="post" th:object="${registrationDto}" id="regForm">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+        <!-- ══════════════════════════════════════════
+             STEP 1 — Gender
+        ══════════════════════════════════════════ -->
+        <div class="step-panel active" id="step-1">
+          <div class="step-heading">Who are you?</div>
+          <div class="step-desc">Select your gender so we can personalise your experience.</div>
+
+          <div class="gender-select">
+            <div class="gender-option">
+              <input type="radio" id="genderMale" name="gender" value="Male" required/>
+              <label for="genderMale" class="gender-label">
+                <!-- Male SVG avatar -->
+                <svg class="gender-avatar-svg" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="26" cy="52" r="22" fill="#DBEAFE"/>
+                  <circle cx="26" cy="20" r="11" fill="#93C5FD"/>
+                  <rect x="14" y="30" width="24" height="20" rx="4" fill="#3B82F6"/>
+                  <rect x="20" y="28" width="12" height="6" rx="2" fill="#BFDBFE"/>
+                  <circle cx="26" cy="20" r="11" fill="#FCD9B5"/>
+                  <path d="M15 18c0-6.075 4.925-11 11-11s11 4.925 11 11" fill="#1E3A5F"/>
+                  <rect x="15" y="15" width="22" height="6" rx="3" fill="#1E3A5F"/>
+                </svg>
+                Male
+              </label>
+            </div>
+            <div class="gender-option">
+              <input type="radio" id="genderFemale" name="gender" value="Female" required/>
+              <label for="genderFemale" class="gender-label">
+                <!-- Female SVG avatar -->
+                <svg class="gender-avatar-svg" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="26" cy="52" r="22" fill="#FCE7F3"/>
+                  <circle cx="26" cy="20" r="11" fill="#F9A8D4"/>
+                  <rect x="13" y="30" width="26" height="20" rx="6" fill="#EC4899"/>
+                  <rect x="19" y="28" width="14" height="6" rx="2" fill="#FBCFE8"/>
+                  <circle cx="26" cy="20" r="11" fill="#FCD9B5"/>
+                  <path d="M15 20c0-6.075 4.925-11 11-11s11 4.925 11 11c0 0 2-1 2-4C39 9.373 33.075 4 26 4S13 9.373 13 16c0 3 2 4 2 4z" fill="#B45309"/>
+                  <path d="M13 20c-1 2-1 8 0 10" stroke="#B45309" stroke-width="3" stroke-linecap="round"/>
+                  <path d="M39 20c1 2 1 8 0 10" stroke="#B45309" stroke-width="3" stroke-linecap="round"/>
+                </svg>
+                Female
+              </label>
+            </div>
+          </div>
+
+          <!-- Navigation: only Next on step 1 -->
+          <div class="step-nav single">
+            <button type="button" class="btn-nav btn-nav-next" id="next-1" onclick="goNext(1)">
+              Next
+              <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════
+             STEP 2 — Role
+        ══════════════════════════════════════════ -->
+        <div class="step-panel" id="step-2">
+          <div class="step-heading">I am joining as…</div>
+          <div class="step-desc">Choose the role that best describes you.</div>
+
+          <div class="role-select">
+            <div class="role-option">
+              <input type="radio" id="roleApplicant" th:field="*{role}" value="APPLICANT"/>
+              <label for="roleApplicant" class="role-label">
+                <svg viewBox="0 0 24 24" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                Job Seeker
+              </label>
+            </div>
+            <div class="role-option">
+              <input type="radio" id="roleEmployer" th:field="*{role}" value="EMPLOYER"/>
+              <label for="roleEmployer" class="role-label">
+                <svg viewBox="0 0 24 24" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+                Employer
+              </label>
+            </div>
+          </div>
+
+          <div class="step-nav">
+            <button type="button" class="btn-nav btn-nav-back" onclick="goBack(2)">
+              <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+              Back
+            </button>
+            <button type="button" class="btn-nav btn-nav-next" onclick="goNext(2)">
+              Next
+              <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════
+             STEP 3 — Career Status (Applicants only)
+        ══════════════════════════════════════════ -->
+        <div class="step-panel" id="step-3">
+          <div class="step-heading">Your Career Stage</div>
+          <div class="step-desc">Help us personalise your dashboard with the right opportunities.</div>
+
+          <!-- Only visible for APPLICANT role -->
+          <div id="careerStatusSection">
+            <div class="role-select" style="grid-template-columns: 1fr 1fr;">
+              <div class="role-option">
+                <input type="radio" id="csStudent" name="careerStatus" value="STUDENT"/>
+                <label for="csStudent" class="role-label" style="gap:10px; padding:22px 12px;">
+                  <svg viewBox="0 0 24 24" stroke-width="2" style="width:28px;height:28px;stroke:currentColor;fill:none;">
+                    <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                    <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+                  </svg>
+                  <span style="font-weight:700;">Student</span>
+                  <span style="font-size:11px; opacity:0.75;">Internships &amp; entry-level</span>
+                </label>
+              </div>
+              <div class="role-option">
+                <input type="radio" id="csGraduate" name="careerStatus" value="GRADUATE"/>
+                <label for="csGraduate" class="role-label" style="gap:10px; padding:22px 12px;">
+                  <svg viewBox="0 0 24 24" stroke-width="2" style="width:28px;height:28px;stroke:currentColor;fill:none;">
+                    <rect x="2" y="7" width="20" height="14" rx="2"/>
+                    <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+                    <line x1="12" y1="12" x2="12" y2="16"/>
+                    <line x1="10" y1="14" x2="14" y2="14"/>
+                  </svg>
+                  <span style="font-weight:700;">Graduate</span>
+                  <span style="font-size:11px; opacity:0.75;">Full-time &amp; senior roles</span>
+                </label>
+              </div>
+            </div>
+            <p style="font-size:12px; color:var(--text-muted); margin-top:-4px;">
+              This helps prioritise internships, hackathons, or full-time listings on your dashboard.
+            </p>
+          </div>
+
+          <!-- Employer gets a skip message -->
+          <div id="careerStatusSkip" style="display:none; text-align:center; padding:32px 0;">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#0A66C2" stroke-width="1.5" style="margin-bottom:12px;">
+              <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+            </svg>
+            <p style="font-weight:600; color:var(--text-primary);">You're joining as an Employer</p>
+            <p style="font-size:13px; color:var(--text-secondary);">Career stage doesn't apply. Continue to set up your account.</p>
+          </div>
+
+          <div class="step-nav">
+            <button type="button" class="btn-nav btn-nav-back" onclick="goBack(3)">
+              <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+              Back
+            </button>
+            <button type="button" class="btn-nav btn-nav-next" onclick="goNext(3)">
+              Next
+              <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════
+             STEP 4 — Personal Details
+        ══════════════════════════════════════════ -->
+        <div class="step-panel" id="step-4">
+          <div class="step-heading">Personal Details</div>
+          <div class="step-desc">Tell us a bit about yourself.</div>
+
+          <div class="form-group">
+            <label class="form-label">Full Name</label>
+            <input type="text" th:field="*{name}" id="nameInput" class="form-control"
+                   placeholder="e.g. Tulasi Ram Vutukuri" required autocomplete="name"/>
+            <span class="form-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></span>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input type="email" th:field="*{email}" class="form-control"
+                     placeholder="you@example.com" required autocomplete="email"/>
+              <span class="form-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Phone</label>
+              <input type="tel" th:field="*{phone}" class="form-control"
+                     placeholder="10-digit mobile number"/>
+            </div>
+          </div>
+
+          <!-- Company (employer only) -->
+          <div class="form-group" id="companyGroup" style="display:none;">
+            <label class="form-label">Company Name</label>
+            <input type="text" th:field="*{company}" class="form-control"
+                   placeholder="e.g. TechVision Inc"/>
+          </div>
+
+          <div class="step-nav">
+            <button type="button" class="btn-nav btn-nav-back" onclick="goBack(4)">
+              <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+              Back
+            </button>
+            <button type="button" class="btn-nav btn-nav-next" onclick="goNext(4)">
+              Next
+              <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════
+             STEP 5 — Password
+        ══════════════════════════════════════════ -->
+        <div class="step-panel" id="step-5">
+          <div class="step-heading">Secure your account</div>
+          <div class="step-desc">Create a strong password to protect your account.</div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Password</label>
+              <input type="password" th:field="*{password}" id="pwdInput" class="form-control"
+                     placeholder="Min 6 characters" required autocomplete="new-password"/>
+              <div class="password-strength">
+                <div class="password-strength-fill" id="pwdStrength"></div>
+              </div>
+              <span class="form-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></span>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Confirm Password</label>
+              <input type="password" id="confirmPwd" class="form-control"
+                     placeholder="Repeat password" required autocomplete="new-password"/>
+              <div id="pwdMatch" style="font-size:12px; margin-top:4px;"></div>
+            </div>
+          </div>
+
+          <div class="step-nav">
+            <button type="button" class="btn-nav btn-nav-back" onclick="goBack(5)">
+              <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+              Back
+            </button>
+            <button type="submit" class="btn-nav btn-nav-next" id="submitBtn">
+              Create Account
+              <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <p style="text-align:center; margin-top:18px; font-size:13px; color:var(--text-secondary);">
+          Already have an account?
+          <a th:href="@{/login}" style="color:var(--primary); font-weight:600;">Sign in →</a>
+        </p>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+/*<![CDATA[*/
+  const TOTAL_STEPS = 5;
+  let currentStep = 1;
+
+  // ── Step navigation ──────────────────────────────────────────
+  function showStep(n) {
+    document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('step-' + n).classList.add('active');
+
+    // update dots & lines
+    for (let i = 1; i <= TOTAL_STEPS; i++) {
+      const dot  = document.getElementById('dot-' + i);
+      const line = document.getElementById('line-' + i);
+      dot.classList.remove('active', 'completed');
+      if (i < n)       dot.classList.add('completed');
+      else if (i === n) dot.classList.add('active');
+
+      if (line) {
+        line.classList.remove('completed');
+        if (i < n) line.classList.add('completed');
+      }
+    }
+    currentStep = n;
+  }
+
+  function goNext(step) {
+    // validate before moving forward
+    if (step === 1) {
+      const gender = document.querySelector('input[name="gender"]:checked');
+      if (!gender) {
+        alert('Please select your gender to continue.');
+        return;
+      }
+    }
+    if (step === 2) {
+      const role = document.querySelector('input[name="role"]:checked');
+      if (!role) {
+        alert('Please select a role to continue.');
+        return;
+      }
+      // Update career status section visibility
+      const isApplicant = role.value === 'APPLICANT';
+      document.getElementById('careerStatusSection').style.display = isApplicant ? 'block' : 'none';
+      document.getElementById('careerStatusSkip').style.display = isApplicant ? 'none' : 'block';
+    }
+    if (step === 4) {
+      const name  = document.getElementById('nameInput');
+      const email = document.querySelector('input[type="email"]');
+      if (!name.value.trim()) { name.focus(); alert('Please enter your full name.'); return; }
+      if (!email.value.trim()) { email.focus(); alert('Please enter your email.'); return; }
+    }
+    showStep(step + 1);
+  }
+
+  function goBack(step) {
+    if (step > 1) showStep(step - 1);
+  }
+
+  // ── Avatar SVGs ───────────────────────────────────────────────
+  const maleSvg = `<svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="40" cy="28" r="18" fill="#FCD9B5"/>
+    <path d="M22 26C22 15.507 30.507 7 41 7s19 8.507 19 19" fill="#1E3A5F"/>
+    <rect x="22" y="22" width="38" height="10" rx="5" fill="#1E3A5F"/>
+    <rect x="18" y="50" width="44" height="30" rx="8" fill="#3B82F6"/>
+    <rect x="28" y="44" width="24" height="12" rx="4" fill="#BFDBFE"/>
+  </svg>`;
+
+  const femaleSvg = `<svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="40" cy="28" r="18" fill="#FCD9B5"/>
+    <path d="M22 28C22 17 30 8 40 8s18 9 18 20c0 0 4-2 4-8C62 11.372 52.627 2 41 2S18 11.373 18 20c0 6 4 8 4 8z" fill="#B45309"/>
+    <path d="M22 28c-2 4-2 14 0 18" stroke="#B45309" stroke-width="5" stroke-linecap="round"/>
+    <path d="M58 28c2 4 2 14 0 18" stroke="#B45309" stroke-width="5" stroke-linecap="round"/>
+    <rect x="16" y="50" width="48" height="30" rx="10" fill="#EC4899"/>
+    <rect x="26" y="44" width="28" height="12" rx="4" fill="#FBCFE8"/>
+  </svg>`;
+
+  const neutralSvg = `<svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="40" cy="28" r="16" fill="rgba(255,255,255,0.5)"/>
+    <ellipse cx="40" cy="72" rx="26" ry="18" fill="rgba(255,255,255,0.3)"/>
+  </svg>`;
+
+  const previewAvatar = document.getElementById('avatarSvg');
+  const previewName   = document.getElementById('previewName');
+  const previewRole   = document.getElementById('previewRole');
+  const nameInput     = document.getElementById('nameInput');
+
+  function updateAvatar() {
+    const gender = document.querySelector('input[name="gender"]:checked');
+    const role   = document.querySelector('input[name="role"]:checked');
+    if (gender) {
+      document.getElementById('avatarSvg').outerHTML = (gender.value === 'Male' ? maleSvg : femaleSvg)
+        .replace('<svg ', '<svg id="avatarSvg" ');
+    }
+    if (role) {
+      document.getElementById('previewRole').textContent = role.value === 'APPLICANT' ? 'Job Seeker' : 'Employer';
+    }
+  }
+
+  document.querySelectorAll('input[name="gender"]').forEach(r => r.addEventListener('change', updateAvatar));
+  document.querySelectorAll('input[name="role"]').forEach(r => r.addEventListener('change', updateAvatar));
+  nameInput.addEventListener('input', () => {
+    document.getElementById('previewName').textContent = nameInput.value || 'Your Name';
+  });
+
+  document.querySelectorAll('input[name="role"]').forEach(r => r.addEventListener('change', () => {
+    updateAvatar();
+    const isEmployer = r.value === 'EMPLOYER';
+    document.getElementById('companyGroup').style.display = isEmployer ? 'block' : 'none';
+    // Update career status section if already visible
+    if (document.getElementById('step-3').classList.contains('active')) {
+      document.getElementById('careerStatusSection').style.display = isEmployer ? 'none' : 'block';
+      document.getElementById('careerStatusSkip').style.display = isEmployer ? 'block' : 'none';
+    }
+  }));
+
+  // ── Password strength ─────────────────────────────────────────
+  const pwdInput   = document.getElementById('pwdInput');
+  const pwdBar     = document.getElementById('pwdStrength');
+  const pwdMatch   = document.getElementById('pwdMatch');
+  const confirmPwd = document.getElementById('confirmPwd');
+
+  pwdInput.addEventListener('input', () => {
+    const v = pwdInput.value;
+    const strength = [v.length >= 8, /[A-Z]/.test(v), /[0-9]/.test(v), /[^A-Za-z0-9]/.test(v)]
+      .filter(Boolean).length;
+    const colours = ['#ef4444', '#f97316', '#eab308', '#22c55e'];
+    const widths  = ['25%', '50%', '75%', '100%'];
+    if (v.length === 0) { pwdBar.style.width = '0'; return; }
+    pwdBar.style.width = widths[strength - 1] || '25%';
+    pwdBar.style.background = colours[strength - 1] || '#ef4444';
+  });
+
+  confirmPwd.addEventListener('input', () => {
+    if (confirmPwd.value === '') { pwdMatch.textContent = ''; return; }
+    const match = pwdInput.value === confirmPwd.value;
+    pwdMatch.textContent = match ? '✓ Passwords match' : '✗ Passwords do not match';
+    pwdMatch.style.color  = match ? 'var(--success)' : 'var(--danger)';
+    pwdMatch.style.fontWeight = '600';
+  });
+
+  // ── Prevent submit if passwords don't match ───────────────────
+  document.getElementById('regForm').addEventListener('submit', e => {
+    if (pwdInput.value !== confirmPwd.value) {
+      e.preventDefault();
+      pwdMatch.textContent = '✗ Passwords do not match';
+      pwdMatch.style.color = 'var(--danger)';
+      confirmPwd.focus();
+    }
+  });
+/*]]>*/
+</script>
+</body>
+</html>

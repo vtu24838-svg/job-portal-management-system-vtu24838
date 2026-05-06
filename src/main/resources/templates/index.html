@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>CareerConnect | Advanced Glass</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            /* Apple-style typography */
+            --font-main: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif;
+            --text-dark: #1d1d1f;
+            --text-muted: #86868b;
+            --primary: #0A66C2; 
+            --primary-hover: #004182;
+            
+            /* Glassmorphism Variables */
+            --glass-bg: rgba(255, 255, 255, 0.45);
+            --glass-border: rgba(255, 255, 255, 0.6);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.04);
+            --blur-amount: 24px;
+            --radius-lg: 24px;
+            --radius-xl: 32px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: var(--font-main); 
+            color: var(--text-dark); 
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* ─── Apple-Style Fluid Mesh Background ─── */
+        .bg-mesh {
+            position: fixed; inset: 0; z-index: -1;
+            background: #fbfbfd;
+            overflow: hidden;
+        }
+        .mesh-orb {
+            position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.6;
+            animation: float 20s infinite ease-in-out alternate;
+        }
+        .mesh-orb:nth-child(1) { width: 600px; height: 600px; background: rgba(10,102,194,0.3); top: -10%; left: -10%; animation-delay: 0s; }
+        .mesh-orb:nth-child(2) { width: 800px; height: 800px; background: rgba(0,198,255,0.25); bottom: -20%; right: -10%; animation-delay: -5s; }
+        .mesh-orb:nth-child(3) { width: 500px; height: 500px; background: rgba(142,68,173,0.15); top: 40%; left: 30%; animation-delay: -10s; }
+        
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(50px, 50px) scale(1.1); }
+        }
+
+        a { text-decoration: none; color: inherit; }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 5%; position: relative; z-index: 10; }
+
+        /* ─── Glass Utility ─── */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--blur-amount));
+            -webkit-backdrop-filter: blur(var(--blur-amount));
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            border-radius: var(--radius-lg);
+        }
+
+        /* ─── Glass Navbar ─── */
+        .navbar { 
+            position: sticky; top: 20px; z-index: 100;
+            max-width: 1200px; margin: 0 auto; padding: 0 5%;
+        }
+        .nav-inner {
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 16px 32px;
+            border-radius: 99px;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+        }
+        .logo { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+        
+        .nav-links { display: flex; gap: 32px; font-size: 14px; font-weight: 500; color: var(--text-dark); opacity: 0.8; }
+        .nav-links a:hover { opacity: 1; }
+        
+        .btn-nav { 
+            background: rgba(10, 102, 194, 0.9); color: white; padding: 10px 24px; 
+            font-size: 14px; font-weight: 600; border-radius: 99px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+        }
+        .btn-nav:hover { background: var(--primary); transform: scale(1.05); }
+
+        @media (max-width: 900px) { .nav-links { display: none; } }
+
+        /* ─── Hero Section ─── */
+        .hero { padding: 120px 0 80px; text-align: center; }
+        
+        .hero-title { 
+            font-size: clamp(56px, 8vw, 96px); 
+            font-weight: 800;
+            line-height: 1.05; 
+            letter-spacing: -0.04em;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, #1d1d1f 0%, #434345 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero-subtitle {
+            font-size: 22px; color: var(--text-muted); font-weight: 400;
+            max-width: 650px; margin: 0 auto 48px; letter-spacing: -0.01em;
+        }
+
+        .hero-actions { display: flex; gap: 16px; justify-content: center; margin-bottom: 80px; }
+        .btn-large {
+            padding: 16px 36px; font-size: 17px; font-weight: 600; border-radius: 99px;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .btn-primary { 
+            background: rgba(10, 102, 194, 0.9); color: white; 
+            backdrop-filter: blur(10px); box-shadow: 0 10px 20px rgba(10, 102, 194, 0.2); 
+        }
+        .btn-primary:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 15px 30px rgba(10, 102, 194, 0.3); }
+        .btn-secondary { 
+            background: rgba(255, 255, 255, 0.5); color: var(--text-dark); 
+            backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.8); 
+        }
+        .btn-secondary:hover { background: rgba(255, 255, 255, 0.8); transform: translateY(-3px) scale(1.02); }
+
+        /* ─── Glass Hero Mockup ─── */
+        .hero-mockup {
+            max-width: 1000px;
+            margin: 0 auto;
+            border-radius: var(--radius-xl);
+            padding: 16px;
+            position: relative;
+            transform: perspective(1000px) rotateX(2deg);
+            transition: transform 0.5s;
+        }
+        .hero-mockup:hover { transform: perspective(1000px) rotateX(0deg); }
+        
+        .mockup-inner {
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            height: 500px;
+        }
+        .mockup-inner img { width: 100%; height: 100%; object-fit: cover; }
+        
+        /* Floating Glass UI Elements */
+        .glass-float {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 24px;
+        }
+        .mockup-stat-1 { bottom: 40px; left: -40px; text-align: left; animation: floatY 6s ease-in-out infinite; }
+        .mockup-stat-2 { top: 60px; right: -30px; text-align: right; animation: floatY 8s ease-in-out infinite reverse; }
+        
+        @keyframes floatY {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .stat-val { font-size: 36px; font-weight: 800; color: var(--primary); line-height: 1; margin-bottom: 4px; }
+        .stat-label { font-size: 14px; font-weight: 600; color: var(--text-dark); opacity: 0.7; }
+
+        @media (max-width: 768px) {
+            .mockup-inner { height: 300px; }
+            .hero-mockup { padding: 8px; }
+            .glass-float { display: none; }
+        }
+
+        /* ─── Shared Section Styles ─── */
+        .section { padding: 120px 0; }
+        .section-header { text-align: center; margin-bottom: 80px; }
+        .section-title { font-size: 48px; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 16px; }
+        .section-desc { font-size: 18px; color: var(--text-muted); max-width: 600px; margin: 0 auto; }
+
+        /* ─── Features Glass Grid ─── */
+        .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+        .feat-card {
+            padding: 40px; transition: transform 0.3s;
+        }
+        .feat-card:hover { transform: translateY(-5px); }
+        .feat-icon { 
+            width: 56px; height: 56px; border-radius: 16px; 
+            background: linear-gradient(135deg, rgba(10,102,194,0.1), rgba(0,198,255,0.1)); 
+            color: var(--primary);
+            display: flex; align-items: center; justify-content: center; margin-bottom: 24px;
+        }
+        .feat-card h3 { font-size: 20px; font-weight: 700; margin-bottom: 12px; }
+        .feat-card p { font-size: 15px; color: var(--text-muted); line-height: 1.6; }
+
+        @media (max-width: 900px) { .features-grid { grid-template-columns: 1fr; } }
+
+        /* ─── Workflow Section ─── */
+        .workflow-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+        .flow-col { padding: 48px; }
+        .flow-col h3 { font-size: 28px; font-weight: 800; margin-bottom: 32px; letter-spacing: -0.02em; }
+        .flow-list { list-style: none; display: flex; flex-direction: column; gap: 28px; }
+        .flow-list li { display: flex; gap: 20px; font-size: 16px; color: var(--text-muted); align-items: flex-start; }
+        .flow-list li strong { color: var(--text-dark); display: block; margin-bottom: 4px; font-weight: 600; }
+        .flow-num { 
+            width: 32px; height: 32px; border-radius: 50%; 
+            background: rgba(10, 102, 194, 0.1); color: var(--primary);
+            display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0;
+        }
+        @media (max-width: 768px) { .workflow-grid { grid-template-columns: 1fr; } }
+
+        /* ─── Glass Pricing ─── */
+        .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; align-items: center; }
+        .price-card { padding: 48px 40px; transition: all 0.3s; position: relative; }
+        .price-card:hover { transform: translateY(-5px) scale(1.02); }
+        
+        .price-card.featured { 
+            background: rgba(255, 255, 255, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.08);
+            transform: scale(1.05); z-index: 2;
+        }
+        .price-card.featured:hover { transform: translateY(-5px) scale(1.08); }
+        
+        .popular-badge {
+            position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+            background: var(--primary); color: white; font-size: 12px; font-weight: 700; padding: 6px 16px; border-radius: 99px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .price-name { font-size: 20px; font-weight: 700; color: var(--text-dark); margin-bottom: 16px; letter-spacing: -0.01em; }
+        .price-val { font-size: 56px; font-weight: 800; color: var(--text-dark); line-height: 1; margin-bottom: 32px; letter-spacing: -0.03em; display: flex; align-items: baseline; gap: 4px; }
+        .price-val span { font-size: 16px; font-weight: 500; color: var(--text-muted); }
+        
+        .price-features { list-style: none; display: flex; flex-direction: column; gap: 16px; margin-bottom: 40px; font-size: 15px; color: var(--text-muted); }
+        .price-features li { display: flex; align-items: center; gap: 12px; }
+        .price-features svg { width: 18px; height: 18px; color: var(--primary); flex-shrink: 0; }
+        
+        @media (max-width: 1024px) { 
+            .pricing-grid { grid-template-columns: 1fr; max-width: 440px; margin: 0 auto; gap: 40px; } 
+            .price-card.featured { transform: scale(1); }
+        }
+
+        /* ─── Footer ─── */
+        .site-footer { padding: 80px 0 40px; margin-top: 40px; }
+        
+        .academic-box { 
+            padding: 40px; margin-bottom: 60px; display: flex; flex-direction: column; gap: 24px;
+            text-align: center;
+        }
+        .academic-box h4 { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; margin: 0; }
+        .ac-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px; }
+        .ac-item { display: flex; flex-direction: column; gap: 4px; }
+        .ac-label { color: var(--text-muted); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .ac-value { font-weight: 600; color: var(--text-dark); font-size: 15px; }
+
+        .footer-bottom { 
+            display: flex; justify-content: space-between; align-items: center; font-size: 14px; color: var(--text-muted); 
+            flex-wrap: wrap; gap: 20px; padding-top: 40px; border-top: 1px solid rgba(0,0,0,0.05);
+        }
+        .footer-logo { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; color: var(--text-dark); }
+        .footer-links { display: flex; gap: 24px; font-weight: 500; }
+        .footer-links a:hover { color: var(--primary); }
+    </style>
+</head>
+<body>
+
+<!-- Mesh Background -->
+<div class="bg-mesh">
+    <div class="mesh-orb"></div>
+    <div class="mesh-orb"></div>
+    <div class="mesh-orb"></div>
+</div>
+
+<!-- Apple Glass Navbar -->
+<nav class="navbar">
+    <div class="nav-inner">
+        <a href="/" class="logo">CareerConnect</a>
+        <div class="nav-links">
+            <a th:href="@{/applicant/jobs}">Jobs</a>
+            <a th:href="@{/network}">Network</a>
+            <a th:href="@{/events}">Events</a>
+            <a th:href="@{/login}">Employers</a>
+        </div>
+        <a th:href="@{/register}" class="btn-nav">Get Started</a>
+    </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero">
+    <div class="container">
+        <h1 class="hero-title">Recruitment,<br>perfectly transparent.</h1>
+        <p class="hero-subtitle">Experience the future of hiring with a beautifully fluid platform designed for maximum clarity and speed.</p>
+        
+        <div class="hero-actions">
+            <a th:href="@{/register}" class="btn-large btn-primary">Start Hiring</a>
+            <a th:href="@{/applicant/jobs}" class="btn-large btn-secondary">Find a Job</a>
+        </div>
+        
+        <div class="hero-mockup glass-panel">
+            <div class="mockup-inner">
+                <img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?auto=format&fit=crop&w=1600&q=80" alt="Team working">
+            </div>
+            
+            <div class="glass-float mockup-stat-1">
+                <div class="stat-val">94%</div>
+                <div class="stat-label">Match Accuracy</div>
+            </div>
+            
+            <div class="glass-float mockup-stat-2">
+                <div class="stat-val">5x</div>
+                <div class="stat-label">Faster Hiring</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Glass Features -->
+<section class="section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Cracked the Code</h2>
+            <p class="section-desc">Powerful tools wrapped in a beautiful, distraction-free interface.</p>
+        </div>
+        
+        <div class="features-grid">
+            <div class="feat-card glass-panel">
+                <div class="feat-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:24px;height:24px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                </div>
+                <h3>Amplify Insights</h3>
+                <p>Unlock data-driven decisions with comprehensive analytics, revealing key opportunities for strategic hiring growth.</p>
+            </div>
+            
+            <div class="feat-card glass-panel">
+                <div class="feat-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:24px;height:24px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <h3>Global Talent Pool</h3>
+                <p>Manage and track satellite offices and remote workers, ensuring consistent performance everywhere.</p>
+            </div>
+            
+            <div class="feat-card glass-panel">
+                <div class="feat-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:24px;height:24px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"></path></svg>
+                </div>
+                <h3>Seamless Comm</h3>
+                <p>Adapt to diverse markets with built-in instant messaging for clear communication and enhanced candidate experience.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Glass Workflow -->
+<section class="section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">How It Works</h2>
+            <p class="section-desc">A fluid experience engineered for both job seekers and growing companies.</p>
+        </div>
+        
+        <div class="workflow-grid">
+            <div class="flow-col glass-panel">
+                <h3>For Job Seekers</h3>
+                <ul class="flow-list">
+                    <li><div class="flow-num">1</div><div><strong>Build your identity.</strong> Create a rich profile highlighting your skills and aspirations.</div></li>
+                    <li><div class="flow-num">2</div><div><strong>Discover matches.</strong> Our algorithm instantly pairs you with open roles fitting your matrix.</div></li>
+                    <li><div class="flow-num">3</div><div><strong>Track seamlessly.</strong> Send applications with one click and track your status real-time.</div></li>
+                    <li><div class="flow-num">4</div><div><strong>Get Hired.</strong> Connect directly with employers to secure your dream role.</div></li>
+                </ul>
+            </div>
+            <div class="flow-col glass-panel">
+                <h3>For Employers</h3>
+                <ul class="flow-list">
+                    <li><div class="flow-num">1</div><div><strong>Post tailored roles.</strong> Define your exact requirements and salary ranges.</div></li>
+                    <li><div class="flow-num">2</div><div><strong>Review AI talent.</strong> See candidates ranked by how perfectly their skills match.</div></li>
+                    <li><div class="flow-num">3</div><div><strong>Manage pipeline.</strong> Use our intuitive Kanban ATS to move candidates seamlessly.</div></li>
+                    <li><div class="flow-num">4</div><div><strong>Build your team.</strong> Finalize hires efficiently and start onboarding top-tier talent.</div></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Glass Pricing -->
+<section class="section pricing">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Transparent Memberships</h2>
+            <p class="section-desc">Simple, straightforward pricing tailored to your career stage or hiring volume.</p>
+        </div>
+        
+        <div class="pricing-grid">
+            <div class="price-card glass-panel">
+                <div class="price-name">Basic</div>
+                <div class="price-val">₹0<span>/mo</span></div>
+                <ul class="price-features">
+                    <li><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Professional profile</li>
+                    <li><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> View basic jobs</li>
+                    <li><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> 5 apps per month</li>
+                    <li><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Email notifications</li>
+                </ul>
+                <a th:href="@{/register}" class="btn-large btn-secondary" style="width:100%; justify-content:center;">Join Free</a>
+            </div>
+            
+            <div class="price-card glass-panel featured">
+                <div class="popular-badge">Most Popular</div>
+                <div class="price-name">Gold</div>
+                <div class="price-val">₹299<span>/mo</span></div>
+                <ul class="price-features">
+                    <li><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Everything in Basic</li>
+                    <li><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Unlimited applications</li>
+                    <li><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Priority visibility</li>
+                    <li><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Golden premium badge</li>
+                </ul>
+                <a th:href="@{/register}" class="btn-large btn-primary" style="width:100%; justify-content:center;">Get Gold</a>
+            </div>
+            
+            <div class="price-card glass-panel">
+                <div class="price-name">Employer</div>
+                <div class="price-val">₹999<span>/mo</span></div>
+                <ul class="price-features">
+                    <li><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Unlimited postings</li>
+                    <li><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> ATS Kanban access</li>
+                    <li><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> AI match percentages</li>
+                    <li><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Bulk actions</li>
+                </ul>
+                <a th:href="@{/register}" class="btn-large btn-secondary" style="width:100%; justify-content:center;">Start Hiring</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Glass Footer -->
+<footer class="site-footer">
+    <div class="container">
+        
+        <!-- Academic Info -->
+        <div class="academic-box glass-panel">
+            <h4>Academic Project Details</h4>
+            <div class="ac-grid">
+                <div class="ac-item">
+                    <span class="ac-label">Student Name</span>
+                    <span class="ac-value">TULASI RAM VUTUKURI</span>
+                </div>
+                <div class="ac-item">
+                    <span class="ac-label">VTU NO</span>
+                    <span class="ac-value">VTU 24838</span>
+                </div>
+                <div class="ac-item">
+                    <span class="ac-label">Course Code</span>
+                    <span class="ac-value">10211CS224</span>
+                </div>
+                <div class="ac-item">
+                    <span class="ac-label">Faculty Name</span>
+                    <span class="ac-value">DR. C.M.CHIDAMBARANATHAN</span>
+                </div>
+                <div class="ac-item">
+                    <span class="ac-label">Review Level</span>
+                    <span class="ac-value">FULL STACK APPLICATION DEVELOPNMENT - FINAL REVIEW</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <div class="footer-logo">CareerConnect</div>
+            
+            <div class="footer-links">
+                <a th:href="@{/applicant/jobs}">Jobs</a>
+                <a th:href="@{/network}">Network</a>
+                <a th:href="@{/events}">Events</a>
+                <a href="https://github.com/vtu24838-svg" target="_blank">GitHub</a>
+                <a href="https://www.linkedin.com/in/tulasi-ram-vutukuri" target="_blank">LinkedIn</a>
+            </div>
+            
+            <div>&copy; 2026 Academic Project. All rights reserved.</div>
+        </div>
+    </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Browse Jobs — CareerConnect</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}"/>
+  <style>
+    /* ── Recommended section ─────────────────────────────── */
+    .rec-section {
+      margin-bottom: 20px;
+    }
+    .rec-section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .rec-section-title {
+      font-size: 15px; font-weight: 800; color: var(--text-primary);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .rec-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 12px;
+    }
+    .rec-card {
+      display: block;
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      border: 1.5px solid #bae6fd;
+      border-radius: 14px;
+      padding: 16px;
+      text-decoration: none;
+      color: inherit;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    }
+    .rec-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 28px rgba(10,102,194,0.15);
+      border-color: #7dd3fc;
+    }
+    .rec-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #0A66C2, #7c3aed);
+    }
+    .match-badge {
+      position: absolute;
+      top: 12px; right: 12px;
+      background: linear-gradient(135deg, #0A66C2, #7c3aed);
+      color: white;
+      font-size: 10px; font-weight: 800;
+      padding: 3px 9px; border-radius: 999px;
+      letter-spacing: 0.3px;
+    }
+    .rec-logo {
+      width: 36px; height: 36px; border-radius: 8px;
+      background: linear-gradient(135deg, #0A66C2, #004182);
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 15px; font-weight: 800;
+      flex-shrink: 0;
+    }
+    .rec-title   { font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 2px; }
+    .rec-company { font-size: 11px; color: var(--text-muted); margin-bottom: 10px; }
+    .rec-tags    { display: flex; gap: 6px; flex-wrap: wrap; }
+    .rec-tag {
+      font-size: 10px; font-weight: 600; padding: 2px 8px;
+      border-radius: 5px;
+    }
+    .rec-tag-type { background: rgba(10,102,194,0.10); color: var(--primary); }
+    .rec-tag-loc  { background: #f1f5f9; color: var(--text-muted); }
+
+    /* ── Divider between rec and live sections ───────────── */
+    .section-divider {
+      display: flex; align-items: center; gap: 12px;
+      margin: 20px 0 16px;
+      color: var(--text-muted); font-size: 12px; font-weight: 600;
+    }
+    .section-divider::before,
+    .section-divider::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
+    }
+
+    .category-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1.5px solid var(--border);
+      background: white;
+      color: var(--text-secondary);
+      transition: var(--transition);
+      text-decoration: none;
+    }
+    .chip:hover { border-color: var(--primary); color: var(--primary); }
+    .chip.active { background: var(--primary); color: white; border-color: var(--primary); }
+    .chip .chip-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: 0.7;
+    }
+    .job-category-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .cat-tech       { background:#dbeafe; color:#1d4ed8; }
+    .cat-data       { background:#ede9fe; color:#6d28d9; }
+    .cat-design     { background:#fce7f3; color:#be185d; }
+    .cat-marketing  { background:#fef3c7; color:#b45309; }
+    .cat-finance    { background:#d1fae5; color:#065f46; }
+    .cat-hr         { background:#fee2e2; color:#991b1b; }
+    .cat-sales      { background:#ffedd5; color:#c2410c; }
+    .cat-ops        { background:#e0f2fe; color:#0369a1; }
+    .cat-devops     { background:#f0fdf4; color:#15803d; }
+    .cat-default    { background:var(--bg); color:var(--text-secondary); }
+
+    /* ── Live indicator ──────────────────────────────── */
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      background: #fee2e2;
+      color: #dc2626;
+      transition: all 0.3s ease;
+    }
+    .live-badge.connected {
+      background: #dcfce7;
+      color: #16a34a;
+    }
+    .live-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      animation: pulse-dot 1.5s infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    /* ── Toast notification ──────────────────────────── */
+    #liveToast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #0A66C2;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 8px 32px rgba(10,102,194,0.35);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transform: translateY(80px);
+      opacity: 0;
+      transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.25s ease;
+      z-index: 9999;
+      pointer-events: none;
+    }
+    #liveToast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* ── Skeleton loader for new cards ──────────────── */
+    .skeleton-card {
+      background: #f1f5f9;
+      border-radius: 12px;
+      height: 80px;
+      animation: shimmer 1.2s infinite linear;
+      background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+      background-size: 400% 100%;
+    }
+    @keyframes shimmer {
+      0%   { background-position: 100% 50%; }
+      100% { background-position: -100% 50%; }
+    }
+
+    /* ── Live search box styling ───────────────────── */
+    .search-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: white;
+      padding: 12px;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border);
+    }
+    .search-bar input, .search-bar select {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--text-primary);
+      transition: var(--transition);
+      background: var(--bg);
+    }
+    .search-bar input:focus,
+    .search-bar select:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: white;
+      box-shadow: 0 0 0 4px var(--primary-light);
+    }
+    .search-bar .btn-search {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 24px;
+      border-radius: var(--radius);
+      background: var(--text-primary);
+      color: white;
+      font-weight: 700;
+      font-size: 14px;
+      border: none;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .search-bar .btn-search:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      background: #000;
+    }
+    .search-bar .btn-clear {
+      padding: 8px 16px;
+      color: var(--text-secondary);
+      font-weight: 600;
+      font-size: 14px;
+      text-decoration: none;
+      transition: var(--transition);
+    }
+    .search-bar .btn-clear:hover {
+      color: var(--danger);
+    }
+
+    /* ── Fade‑in animation for new cards ────────────── */
+    @keyframes slideInCard {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .job-card-new { animation: slideInCard 0.4s ease both; }
+  </style>
+</head>
+<body class="page-wrapper">
+
+<div th:replace="~{fragments/layout :: dashNavbar}"></div>
+
+<div class="dashboard-layout no-right">
+
+  <div th:replace="~{fragments/layout :: applicantSidebar(user=${user}, activePage='jobs')}"></div>
+
+  <main>
+
+    <!-- Resume upload warning -->
+    <div th:if="${!hasResume}"
+         style="display:flex;align-items:center;gap:14px;background:#fff7ed;border:1.5px solid #fed7aa;border-radius:12px;padding:13px 18px;margin-bottom:16px;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <div style="flex:1;font-size:13px;">
+        <strong style="color:#9a3412;">Resume required to apply.</strong>
+        <span style="color:#c2410c;"> Upload your PDF/DOCX resume so you can apply to jobs and get skill-matched recommendations.</span>
+      </div>
+      <a th:href="@{/applicant/profile}" style="padding:6px 14px;background:#ea580c;color:white;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap;">Upload Now</a>
+    </div>
+
+    <!-- Header -->
+    <div class="card mb-3">
+      <div class="flex-between">
+        <div>
+          <h1 style="font-size:18px; font-weight:700;">Browse Jobs</h1>
+          <p class="text-muted mt-1">Discover opportunities that match your skills and goals.</p>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <!-- Live connection badge -->
+          <span class="live-badge" id="liveBadge">
+            <span class="live-dot"></span>
+            <span id="liveBadgeText">Connecting…</span>
+          </span>
+          <!-- Job count, updated dynamically -->
+          <div id="jobCountBadge"
+               style="background:var(--primary-light);color:var(--primary);padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700;"
+               th:text="${jobs.size()} + ' jobs'">Jobs</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Category Chips -->
+    <div class="category-chips">
+      <a th:href="@{/applicant/jobs}" class="chip" th:classappend="${category == null or category == '' ? ' active' : ''}">
+        <span class="chip-dot"></span> All Jobs
+      </a>
+      <a th:href="@{/applicant/jobs(category='Technology')}" class="chip cat-tech"
+         th:classappend="${category == 'Technology' ? ' active' : ''}">💻 Technology</a>
+      <a th:href="@{/applicant/jobs(category='Data Science &amp; AI')}" class="chip cat-data"
+         th:classappend="${category == 'Data Science &amp; AI' ? ' active' : ''}">🤖 Data &amp; AI</a>
+      <a th:href="@{/applicant/jobs(category='Design')}" class="chip cat-design"
+         th:classappend="${category == 'Design' ? ' active' : ''}">🎨 Design</a>
+      <a th:href="@{/applicant/jobs(category='Marketing')}" class="chip cat-marketing"
+         th:classappend="${category == 'Marketing' ? ' active' : ''}">📣 Marketing</a>
+      <a th:href="@{/applicant/jobs(category='Finance')}" class="chip cat-finance"
+         th:classappend="${category == 'Finance' ? ' active' : ''}">💰 Finance</a>
+      <a th:href="@{/applicant/jobs(category='Human Resources')}" class="chip cat-hr"
+         th:classappend="${category == 'Human Resources' ? ' active' : ''}">👥 HR</a>
+      <a th:href="@{/applicant/jobs(category='Sales')}" class="chip cat-sales"
+         th:classappend="${category == 'Sales' ? ' active' : ''}">🤝 Sales</a>
+      <a th:href="@{/applicant/jobs(category='Operations')}" class="chip cat-ops"
+         th:classappend="${category == 'Operations' ? ' active' : ''}">⚙️ Operations</a>
+      <a th:href="@{/applicant/jobs(category='DevOps &amp; Cloud')}" class="chip cat-devops"
+         th:classappend="${category == 'DevOps &amp; Cloud' ? ' active' : ''}">☁️ DevOps &amp; Cloud</a>
+    </div>
+
+    <!-- Live Search Bar (no page-submit needed; JS intercepts) -->
+    <div class="search-bar mb-3" id="searchBar">
+      <input type="text"  id="searchKeyword"  th:value="${keyword}"
+             placeholder="Search by title, company…" style="flex:2;"/>
+      <input type="text"  id="searchLocation" th:value="${location}"
+             placeholder="Location" style="flex:1;"/>
+      <select id="searchType" style="flex:1;">
+        <option value="">All Types</option>
+        <option value="Full-time"  th:selected="${type == 'Full-time'}">Full-time</option>
+        <option value="Part-time"  th:selected="${type == 'Part-time'}">Part-time</option>
+        <option value="Internship" th:selected="${type == 'Internship'}">Internship</option>
+        <option value="Contract"   th:selected="${type == 'Contract'}">Contract</option>
+        <option value="Remote"     th:selected="${type == 'Remote'}">Remote</option>
+      </select>
+      <!-- hidden category from URL param -->
+      <input type="hidden" id="searchCategory" th:value="${category}"/>
+      <button type="button" class="btn-search" onclick="fetchAndRender()">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Search
+      </button>
+      <a th:href="@{/applicant/jobs}" class="btn-clear">Clear</a>
+    </div>
+
+    <!-- Active filter banner -->
+    <div th:if="${category != null and !category.isEmpty()}"
+         class="alert alert-info" style="margin-bottom:16px;">
+      Showing jobs in: <strong th:text="${category}">Category</strong>
+      <a th:href="@{/applicant/jobs}" style="margin-left:12px; font-weight:600; color:var(--primary);">✕ Clear</a>
+    </div>
+
+    <!-- ── AI Recommended Jobs (server-rendered, static section) ─────────── -->
+    <div class="rec-section"
+         th:if="${!recommendations.empty and (category == null or category.isEmpty()) and (keyword == null or keyword.isEmpty())}">
+      <div class="rec-section-header">
+        <div class="rec-section-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2.5">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+          </svg>
+          ⚡ Recommended For You
+        </div>
+      </div>
+      <div class="rec-grid">
+        <a th:each="rec : ${recommendations}" th:href="@{/applicant/jobs/{id}(id=${rec.job().id})}" class="rec-card">
+          <div class="match-badge">
+            <span th:text="${rec.matchPercent()} + '%'">%</span> match
+          </div>
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+            <div class="rec-logo" th:text="${rec.job().company != null ? rec.job().company.substring(0,1).toUpperCase() : 'J'}">J</div>
+            <div>
+              <div class="rec-title" th:text="${rec.job().title}">Title</div>
+              <div class="rec-company" th:text="${rec.job().company}">Company</div>
+            </div>
+          </div>
+          <div class="rec-tags">
+            <span th:if="${rec.job().type}" class="rec-tag rec-tag-type" th:text="${rec.job().type}">Type</span>
+            <span th:if="${rec.job().location}" class="rec-tag rec-tag-loc" th:text="${rec.job().location}">Location</span>
+            <span th:if="${rec.job().salary}" class="rec-tag" style="background:#dcfce7;color:#166534;" th:text="${rec.job().salary}">Salary</span>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <!-- Divider between recommended and all jobs -->
+    <div class="section-divider"
+         th:if="${!recommendations.empty and (category == null or category.isEmpty()) and (keyword == null or keyword.isEmpty())}">
+      All Open Jobs
+    </div>
+
+    <!-- ── Job list (dynamically managed by JS) ───── -->
+    <div id="jobList" style="display:flex; flex-direction:column; gap:12px;">
+
+      <!-- Initial skeleton — JS replaces this immediately via fetchAndRender() -->
+      <div id="jobListSkeleton" style="display:flex;flex-direction:column;gap:12px;">
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card" style="opacity:.7;"></div>
+        <div class="skeleton-card" style="opacity:.45;"></div>
+      </div>
+    </div>
+    <!-- ── end #jobList ────────────────────────────── -->
+
+  </main>
+</div>
+
+<!-- Toast notification -->
+<div id="liveToast">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+    <polyline points="22 4 12 14.01 9 11.01"/>
+  </svg>
+  <span id="toastMsg">New jobs available!</span>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+
+<script>
+/*<![CDATA[*/
+// ── Category colour map ───────────────────────────────────────────────────────
+const CAT_CLASS = {
+  'Technology':       'cat-tech',
+  'Data Science & AI':'cat-data',
+  'Design':           'cat-design',
+  'Marketing':        'cat-marketing',
+  'Finance':          'cat-finance',
+  'Human Resources':  'cat-hr',
+  'Sales':            'cat-sales',
+  'Operations':       'cat-ops',
+  'DevOps & Cloud':   'cat-devops',
+};
+
+// ── Initial filter values (from Thymeleaf server-render) ─────────────────────
+const initCategory = document.getElementById('searchCategory').value || '';
+
+// ── Build a single job-card anchor from a JSON job object ────────────────────
+function buildJobCard(job, isNew) {
+  const letter  = job.company ? job.company.charAt(0).toUpperCase() : 'J';
+  const catCls  = CAT_CLASS[job.category] || 'cat-default';
+  const catHtml = job.category
+    ? `<span class="job-category-badge ${catCls}">${job.category}</span>`
+    : '';
+  const locHtml = job.location
+    ? `<span class="job-tag">
+         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+           <circle cx="12" cy="10" r="3"/>
+         </svg>
+         ${job.location}
+       </span>` : '';
+  const typeHtml  = job.type   ? `<span class="job-tag">${job.type}</span>`   : '';
+  const salHtml   = job.salary ? `<span class="job-tag" style="color:var(--success);background:var(--success-light);">${job.salary}</span>` : '';
+  const dateHtml  = job.createdAt ? `<span style="font-size:11px;color:var(--text-muted);">${job.createdAt}</span>` : '';
+
+  const a = document.createElement('a');
+  a.href  = `/applicant/jobs/${job.id}`;
+  a.className = 'job-card' + (isNew ? ' job-card-new' : '');
+  a.style.cssText = 'display:flex; gap:14px; align-items:flex-start; text-decoration:none; color:inherit;';
+  a.innerHTML = `
+    <div class="job-icon">${letter}</div>
+    <div class="job-info">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:3px;">
+        <div class="job-title">${job.title}</div>
+        ${catHtml}
+      </div>
+      <div class="job-company">${job.company || ''}</div>
+      <div class="job-meta">${locHtml}${typeHtml}${salHtml}</div>
+    </div>
+    <div class="job-actions" style="flex-shrink:0;">
+      <span class="badge badge-success">Open</span>
+      ${dateHtml}
+    </div>`;
+  return a;
+}
+
+// ── Fetch jobs from REST API and re-render #jobList ───────────────────────────
+let previousJobIds = null;   // track ids to detect genuinely new arrivals
+let isFetching     = false;
+
+async function fetchAndRender(showToast) {
+  if (isFetching) return;
+  isFetching = true;
+
+  const keyword  = document.getElementById('searchKeyword').value.trim();
+  const location = document.getElementById('searchLocation').value.trim();
+  const type     = document.getElementById('searchType').value;
+  const category = document.getElementById('searchCategory').value;
+
+  const params = new URLSearchParams();
+  if (keyword)  params.set('keyword',  keyword);
+  if (location) params.set('location', location);
+  if (type)     params.set('type',     type);
+  if (category) params.set('category', category);
+
+  try {
+    const res  = await fetch('/api/jobs?' + params.toString());
+    const jobs = await res.json();
+
+    // Detect new arrivals
+    const currentIds = new Set(jobs.map(j => j.id));
+    const isFirstLoad = previousJobIds === null;
+    const hasNew = !isFirstLoad && jobs.some(j => !previousJobIds.has(j.id));
+    previousJobIds = currentIds;
+
+    // Re-render job list
+    const list = document.getElementById('jobList');
+    list.innerHTML = '';
+
+    if (jobs.length === 0) {
+      list.innerHTML = `
+        <div class="card">
+          <div class="empty-state">
+            <div class="empty-icon">
+              <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </div>
+            <div class="empty-title">No jobs found</div>
+            <div class="empty-desc">Try different keywords or clear filters.</div>
+            <a href="/applicant/jobs" class="btn btn-primary">Show All Jobs</a>
+          </div>
+        </div>`;
+    } else {
+      jobs.forEach((job, idx) => {
+        const isNew = !isFirstLoad && !previousJobIds.has(job.id);
+        const card = buildJobCard(job, isNew);
+        // stagger animation
+        card.style.animationDelay = idx * 30 + 'ms';
+        list.appendChild(card);
+      });
+    }
+
+    // Update count badge
+    document.getElementById('jobCountBadge').textContent = jobs.length + ' jobs';
+
+    // Show toast for new jobs
+    if ((hasNew || showToast) && !isFirstLoad) {
+      showToastMsg('🎉 New job listed! Check it out.');
+    }
+
+  } catch (err) {
+    console.error('[CareerConnect] Failed to fetch jobs:', err);
+  } finally {
+    isFetching = false;
+  }
+}
+
+// ── Toast helper ─────────────────────────────────────────────────────────────
+function showToastMsg(msg) {
+  const toast = document.getElementById('liveToast');
+  document.getElementById('toastMsg').textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 4000);
+}
+
+// ── Live badge helper ─────────────────────────────────────────────────────────
+function setLiveBadge(connected) {
+  const badge = document.getElementById('liveBadge');
+  const text  = document.getElementById('liveBadgeText');
+  badge.classList.toggle('connected', connected);
+  text.textContent = connected ? 'Live' : 'Reconnecting…';
+}
+
+// ── Server-Sent Events listener ───────────────────────────────────────────────
+function connectSSE() {
+  const es = new EventSource('/api/jobs/stream');
+
+  es.addEventListener('connected', () => {
+    setLiveBadge(true);
+    console.log('[CareerConnect] SSE connected');
+  });
+
+  es.addEventListener('job-update', () => {
+    console.log('[CareerConnect] job-update received — refreshing feed');
+    fetchAndRender(true);  // re-fetch and show toast
+  });
+
+  es.onerror = () => {
+    setLiveBadge(false);
+    // EventSource auto-reconnects; we just update the badge
+    setTimeout(() => {
+      if (es.readyState === EventSource.CLOSED) {
+        connectSSE();  // manual reconnect if browser gave up
+      }
+    }, 5000);
+  };
+}
+
+// ── Live search — debounced keyup on inputs ───────────────────────────────────
+let debounceTimer;
+function setupLiveSearch() {
+  ['searchKeyword', 'searchLocation'].forEach(id => {
+    document.getElementById(id).addEventListener('keyup', () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(fetchAndRender, 350);
+    });
+  });
+  document.getElementById('searchType').addEventListener('change', () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(fetchAndRender, 100);
+  });
+}
+
+// ── Bootstrap ─────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  // Mark initial server-rendered jobs as known
+  // (we fetch once to sync the ID set so we can detect future arrivals)
+  fetchAndRender(false).then(() => {
+    connectSSE();
+    setupLiveSearch();
+  });
+});
+/*]]>*/
+</script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title th:text="${event.title + ' — CareerConnect'}">Event Detail</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}"/>
+  <style>
+    .event-detail-card {
+      background: white; border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+    }
+    .event-detail-banner {
+      height: 10px;
+      background: linear-gradient(90deg, var(--secondary), var(--accent));
+    }
+    .event-detail-body { padding: 40px 48px; }
+    .event-detail-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 28px; }
+    .event-detail-title { font-size: 26px; font-weight: 800; color: var(--text-primary); line-height: 1.3; }
+    .event-category-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 6px 14px; border-radius: 999px;
+      font-size: 12px; font-weight: 700; letter-spacing: 0.5px;
+      text-transform: uppercase; white-space: nowrap;
+      background: var(--warning-light); color: var(--text-primary);
+    }
+    .event-meta-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+      background: var(--bg); border-radius: var(--radius); padding: 20px;
+      margin-bottom: 32px;
+    }
+    .event-meta-item { display: flex; flex-direction: column; gap: 4px; }
+    .event-meta-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); }
+    .event-meta-value { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+    .event-description-section { margin-bottom: 32px; }
+    .event-description-section h3 { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); margin-bottom: 12px; }
+    .event-description-section p { font-size: 15px; color: var(--text-secondary); line-height: 1.75; white-space: pre-wrap; }
+    .event-actions { display: flex; gap: 12px; }
+    .back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--text-secondary); text-decoration: none; margin-bottom: 20px; }
+    .back-link svg { width: 16px; height: 16px; stroke: currentColor; fill: none; flex-shrink: 0; }
+    .back-link:hover { color: var(--primary); }
+  </style>
+</head>
+<body class="page-wrapper">
+
+<div th:replace="~{fragments/layout :: dashNavbar}"></div>
+
+<div class="dashboard-layout no-right">
+  <div th:replace="~{fragments/layout :: autoSidebar(user=${user}, activePage='events')}"></div>
+
+  <main>
+    <a th:href="@{/events}" class="back-link">
+      <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Back to Events
+    </a>
+
+    <div class="event-detail-card">
+      <div class="event-detail-banner"></div>
+      <div class="event-detail-body">
+        <div class="event-detail-header">
+          <div class="event-detail-title" th:text="${event.title}">Event Title</div>
+          <span class="event-category-badge" th:text="${event.category.name().replace('_',' ')}">Category</span>
+        </div>
+
+        <div class="event-meta-grid">
+          <div class="event-meta-item">
+            <div class="event-meta-label">📅 Date</div>
+            <div class="event-meta-value" th:text="${#temporals.format(event.eventDate, 'dd MMMM yyyy')}">Date</div>
+          </div>
+          <div class="event-meta-item">
+            <div class="event-meta-label">🏢 Organiser</div>
+            <div class="event-meta-value" th:text="${event.organizer ?: 'N/A'}">Organizer</div>
+          </div>
+          <div class="event-meta-item">
+            <div class="event-meta-label">📍 Location</div>
+            <div class="event-meta-value" th:text="${event.location ?: 'Online / TBD'}">Location</div>
+          </div>
+        </div>
+
+        <div class="event-description-section">
+          <h3>About This Event</h3>
+          <p th:text="${event.description ?: 'No additional description provided.'}">Description</p>
+        </div>
+
+        <div class="event-actions">
+          <a th:if="${event.registrationLink}"
+             th:href="${event.registrationLink}" target="_blank" rel="noopener"
+             class="btn btn-primary">
+            <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            Register Now
+          </a>
+          <a th:href="@{/events}" class="btn btn-outline">
+            <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            All Events
+          </a>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>
+

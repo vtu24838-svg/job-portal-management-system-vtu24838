@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Applicant Dashboard | CareerConnect</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}"/>
+</head>
+<body class="page-wrapper">
+
+<!-- Navigation -->
+<div th:replace="~{fragments/layout :: dashNavbar}"></div>
+
+<div class="dashboard-layout">
+  
+  <!-- Sidebar -->
+  <div th:replace="~{fragments/layout :: autoSidebar(user=${user}, activePage='dashboard')}"></div>
+
+  <!-- Main Content -->
+  <main>
+    <div th:if="${successMsg != null}" class="alert alert-success">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+      <span th:text="${successMsg}"></span>
+    </div>
+
+    <!-- Welcome Header (Personalized) -->
+    <div class="card mb-3" style="border-left:4px solid var(--primary); background: linear-gradient(100deg, var(--primary-light), #fff);">
+      <div class="flex-between">
+        <div>
+          <h1 style="font-size:18px; font-weight:700;">
+            Welcome back, <span style="color:var(--primary);" th:text="${user.name}">Name</span>!
+            <span th:if="${isStudent}"
+                  style="display:inline-block;background:var(--accent);color:var(--primary-dark);font-size:11px;font-weight:700;padding:2px 10px;border-radius:999px;vertical-align:middle;margin-left:8px;"
+            >🎓 Student</span>
+            <span th:if="${!isStudent and user.careerStatus != null}"
+                  style="display:inline-block;background:var(--success-light);color:var(--success);font-size:11px;font-weight:700;padding:2px 10px;border-radius:999px;vertical-align:middle;margin-left:8px;"
+            >💼 Graduate</span>
+          </h1>
+          <p class="text-muted mt-1"
+             th:if="${isStudent}">Showing internships, hackathons &amp; entry-level opportunities for you.</p>
+          <p class="text-muted mt-1"
+             th:unless="${isStudent}">Here's a summary of your job search activity.</p>
+        </div>
+        <a th:href="@{/applicant/jobs}" class="btn btn-primary">
+          <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Browse Jobs
+        </a>
+      </div>
+    </div>
+
+    <!-- Resume Required Warning -->
+    <div th:if="${user.resumePath == null or user.resumePath.isEmpty()}"
+         style="display:flex;align-items:center;gap:14px;background:#fff7ed;border:1.5px solid #fed7aa;border-radius:12px;padding:14px 20px;margin-bottom:18px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:700;color:#9a3412;">Resume Required to Apply</div>
+        <div style="font-size:12px;color:#c2410c;margin-top:2px;">Upload your PDF or DOCX resume to unlock job applications and get skill-matched recommendations.</div>
+      </div>
+      <a th:href="@{/applicant/profile}" style="padding:7px 16px;background:#ea580c;color:white;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap;">Upload Now</a>
+    </div>
+
+    <div class="metrics-bar">
+      <a th:href="@{/applicant/applications}" class="metric-item primary">
+        <div class="metric-value" th:text="${totalApplied}">0</div>
+        <div class="metric-label">Total Applied</div>
+      </a>
+      <a th:href="@{/applicant/applications}" class="metric-item warning">
+        <div class="metric-value" th:text="${pending}">0</div>
+        <div class="metric-label">Pending Review</div>
+      </a>
+      <a th:href="@{/applicant/applications}" class="metric-item success">
+        <div class="metric-value" th:text="${shortlisted}">0</div>
+        <div class="metric-label">Shortlisted</div>
+      </a>
+      <a th:href="@{/applicant/applications}" class="metric-item danger">
+        <div class="metric-value" th:text="${rejected}">0</div>
+        <div class="metric-label">Not Selected</div>
+      </a>
+    </div>
+
+    <!-- Recent Applications -->
+    <div class="card">
+      <div class="section-header">
+        <h2 class="section-title">Recent Applications</h2>
+        <a th:href="@{/applicant/applications}" style="font-size:13px; color:var(--primary); font-weight:600;">View All →</a>
+      </div>
+
+      <div th:if="${applications.empty}" class="empty-state">
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </div>
+        <div class="empty-title">No applications yet</div>
+        <div class="empty-desc">Start exploring jobs and apply to positions that match your skills.</div>
+        <a th:href="@{/applicant/jobs}" class="btn btn-primary">Find Jobs</a>
+      </div>
+
+      <div th:if="${!applications.empty}">
+        <div th:each="app : ${applications}" class="job-card mb-2" style="margin-bottom:10px;">
+          <div class="job-icon" th:text="${app.job.company != null ? app.job.company.substring(0,1) : 'J'}">J</div>
+          <div class="job-info">
+            <div class="job-title" th:text="${app.job.title}">Job Title</div>
+            <div class="job-company" th:text="${app.job.company}">Company</div>
+            <div class="job-meta mt-1">
+              <span class="job-tag" th:text="${app.job.location}">Location</span>
+              <span class="job-tag" th:text="${app.job.type}">Type</span>
+            </div>
+          </div>
+          <div class="job-actions">
+            <span class="badge"
+                  th:classappend="${app.status.name() == 'SHORTLISTED' ? 'badge-success' : (app.status.name() == 'REJECTED' ? 'badge-danger' : 'badge-primary')}"
+                  th:text="${app.status}">PENDING</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profile Completion Tip -->
+    <div class="card mt-3" th:if="${user.skills == null or user.skills.isEmpty()}">
+      <div class="flex-center gap-3">
+        <div style="width:40px; height:40px; background:var(--warning-light); border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div style="flex:1;">
+          <div style="font-weight:600; font-size:14px;">Complete Your Profile</div>
+          <div style="font-size:13px; color:var(--text-secondary);">Add skills, education, and upload your resume to stand out to employers.</div>
+        </div>
+        <a th:href="@{/applicant/profile}" class="btn btn-outline btn-sm">Update Profile</a>
+      </div>
+    </div>
+
+    <!-- ── AI Recommended Jobs ────────────────────────────────── -->
+    <div class="card mt-3" th:if="${!recommendations.empty}">
+      <div class="section-header">
+        <h2 class="section-title">⚡ Recommended For You</h2>
+        <a th:href="@{/applicant/jobs}" style="font-size:13px; color:var(--primary); font-weight:600;">View All →</a>
+      </div>
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:14px;">
+        Based on your skills: <strong th:text="${user.skills}">skills</strong>
+      </p>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <a th:each="rec : ${recommendations}"
+           th:href="@{/applicant/jobs/{id}(id=${rec.job().id})}"
+           style="display:block;background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1.5px solid #bae6fd;border-radius:12px;padding:14px 16px;transition:all .2s;text-decoration:none;color:inherit;position:relative;overflow:hidden;">
+          <!-- Match % badge -->
+          <div style="position:absolute;top:10px;right:10px;background:linear-gradient(135deg,#0A66C2,#7c3aed);color:white;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;">
+            <span th:text="${rec.matchPercent()}+'%'">#%</span> match
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;margin-right:54px;">
+            <div style="width:34px;height:34px;background:linear-gradient(135deg,#0A66C2,#004182);border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:13px;flex-shrink:0;"
+                 th:text="${rec.job().company != null ? rec.job().company.substring(0,1) : 'J'}">J</div>
+            <div>
+              <div style="font-size:13px;font-weight:700;color:var(--text-primary);" th:text="${rec.job().title}">Title</div>
+              <div style="font-size:11px;color:var(--text-muted);" th:text="${rec.job().company}">Company</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <span th:if="${rec.job().type}" style="background:rgba(10,102,194,0.10);color:var(--primary);border-radius:6px;padding:2px 8px;font-size:11px;font-weight:600;" th:text="${rec.job().type}">Type</span>
+            <span th:if="${rec.job().location}" style="background:#f1f5f9;color:var(--text-muted);border-radius:6px;padding:2px 8px;font-size:11px;" th:text="${rec.job().location}">Location</span>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <!-- ── Upcoming Events (personalized) ───────────────────────── -->
+    <div class="card mt-3" th:if="${!upcomingEvents.empty}">
+      <div class="section-header">
+        <h2 class="section-title" th:if="${isStudent}">🏆 Upcoming Hackathons &amp; Competitions</h2>
+        <h2 class="section-title" th:unless="${isStudent}">📅 Upcoming Events</h2>
+        <a th:href="@{/events}" style="font-size:13px; color:var(--primary); font-weight:600;">View All →</a>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
+        <div th:each="event : ${upcomingEvents}"
+             style="display:flex;align-items:center;gap:14px;padding:12px 14px;background:#f8fafc;border-radius:10px;border:1px solid var(--border);">
+          <div style="width:48px;height:48px;background:linear-gradient(135deg,#fef3c7,#fde68a);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;"
+               th:text="${event.category.name() == 'HACKATHON' ? '🏆' : event.category.name() == 'CODING_COMPETITION' ? '💻' : event.category.name() == 'WORKSHOP' ? '🛠️' : '📅'}">🎯</div>
+          <div style="flex:1;">
+            <div style="font-size:13px;font-weight:700;color:var(--text-primary);" th:text="${event.title}">Event</div>
+            <div style="font-size:11px;color:var(--text-muted);" th:text="${#temporals.format(event.eventDate,'dd MMM yyyy') + (event.organizer != null ? ' · ' + event.organizer : '')}">Date</div>
+          </div>
+          <a th:href="@{/events/{id}(id=${event.id})}"
+             style="font-size:12px;font-weight:700;color:var(--primary);text-decoration:none;white-space:nowrap;">View →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Explore Opportunities (live refresh) -->
+    <div class="card mt-3">
+      <div class="section-header">
+        <h2 class="section-title" th:if="${isStudent}">🎯 Internship &amp; Entry-Level Opportunities</h2>
+        <h2 class="section-title" th:unless="${isStudent}">Explore Opportunities</h2>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span id="dashLiveDot" style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;background:#dcfce7;color:#16a34a;">
+            <span style="width:6px;height:6px;border-radius:50%;background:#16a34a;display:inline-block;"></span>
+            Live
+          </span>
+          <a href="/applicant/jobs" style="font-size:13px; color:var(--primary); font-weight:600;">View All →</a>
+        </div>
+      </div>
+      <div id="dashJobGrid" style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:14px;">
+        <!-- populated by JS -->
+      </div>
+    </div>
+  </main>
+
+  <!-- Right sidebar -->
+  <aside class="dashboard-right">
+    <!-- Profile Strength -->
+    <div class="card mb-3">
+      <div class="card-title">Profile Strength</div>
+      <div style="position:relative; width:90px; height:90px; margin:0 auto 14px;">
+        <svg viewBox="0 0 36 36" style="width:90px;height:90px;transform:rotate(-90deg);">
+          <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--border)" stroke-width="3"/>
+          <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--primary)" stroke-width="3"
+                  stroke-dasharray="100" th:stroke-dashoffset="${100 - profileStrength}"
+                  stroke-linecap="round" style="transition:stroke-dashoffset 1s ease;"/>
+        </svg>
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;">
+          <div style="font-size:18px;font-weight:800;color:var(--primary);" th:text="${profileStrength + '%'}">0%</div>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--text-secondary);text-align:center;margin-bottom:12px;"
+           th:text="${profileStrength < 60 ? 'Add more details to improve your chances' : profileStrength < 90 ? 'Looking good! Add resume to reach 100%' : 'Excellent profile!'}">Status</div>
+      <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;">
+        <div style="height:100%;border-radius:3px;background:var(--primary);transition:width 1s ease;"
+             th:style="'width:' + ${profileStrength} + '%;'"></div>
+      </div>
+      <a th:href="@{/applicant/profile}" class="btn btn-outline btn-sm btn-full" style="margin-top:12px;">Improve Profile</a>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-title">Quick Actions</div>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <a th:href="@{/applicant/jobs}" class="btn btn-primary btn-full">
+          <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Browse Jobs
+        </a>
+        <a th:href="@{/applicant/profile}" class="btn btn-outline btn-full">
+          <svg viewBox="0 0 24 24" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Edit Profile
+        </a>
+        <a th:href="@{/applicant/applications}" class="btn btn-ghost btn-full">
+          <svg viewBox="0 0 24 24" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          My Applications
+        </a>
+      </div>
+    </div>
+
+    <!-- Job Market Insights -->
+    <div class="card">
+      <div class="card-title">Job Market Insights</div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div style="font-size:13px;color:var(--text-secondary);">💻 Technology</div>
+          <span style="font-size:12px;font-weight:700;color:var(--primary);">12 jobs</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div style="font-size:13px;color:var(--text-secondary);">🤖 Data Science &amp; AI</div>
+          <span style="font-size:12px;font-weight:700;color:var(--primary);">8 jobs</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div style="font-size:13px;color:var(--text-secondary);">☁️ DevOps &amp; Cloud</div>
+          <span style="font-size:12px;font-weight:700;color:var(--primary);">5 jobs</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div style="font-size:13px;color:var(--text-secondary);">🎨 Design</div>
+          <span style="font-size:12px;font-weight:700;color:#7c3aed;">6 jobs</span>
+        </div>
+        <div style="height:1px;background:var(--border);"></div>
+        <a th:href="@{/applicant/jobs}" style="font-size:13px;color:var(--primary);font-weight:600;">Browse all categories →</a>
+      </div>
+    </div>
+
+    <!-- Resume -->
+    <div class="card mt-3">
+      <div class="card-title">Resume</div>
+      <div th:if="${user.resumePath != null and !user.resumePath.isEmpty()}">
+        <div style="font-size:13px; color:var(--success); font-weight:600; margin-bottom:10px;">✓ Resume uploaded</div>
+        <a th:href="@{/uploads/{f}(f=${user.resumePath})}" target="_blank" class="btn btn-outline btn-sm btn-full">Download Resume</a>
+      </div>
+      <div th:if="${user.resumePath == null or user.resumePath.isEmpty()}">
+        <p style="font-size:13px; color:var(--text-secondary); margin-bottom:12px;">No resume uploaded yet.</p>
+        <a th:href="@{/applicant/profile}" class="btn btn-primary btn-sm btn-full">Upload Resume</a>
+      </div>
+    </div>
+  </aside>
+
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+
+<script>
+/*<![CDATA[*/
+// ── Dashboard: live Explore Opportunities ────────────────────────────────────
+async function refreshDashJobs() {
+  try {
+    const res  = await fetch('/api/jobs');
+    const jobs = await res.json();
+    const grid = document.getElementById('dashJobGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    const slice = jobs.slice(0, 6);
+    if (slice.length === 0) {
+      grid.innerHTML = '<p style="font-size:13px;color:var(--text-muted);grid-column:1/-1;">No open jobs at the moment.</p>';
+      return;
+    }
+    slice.forEach(job => {
+      const letter = job.company ? job.company.charAt(0).toUpperCase() : 'J';
+      const catHtml = job.category
+        ? `<span style="background:rgba(10,102,194,0.1);color:var(--primary);border-radius:6px;padding:2px 8px;font-size:11px;font-weight:600;">${job.category}</span>`
+        : '';
+      const salHtml = job.salary
+        ? `<span style="background:rgba(34,197,94,0.12);color:var(--success);border-radius:6px;padding:2px 8px;font-size:11px;font-weight:600;">${job.salary}</span>`
+        : '';
+      const a = document.createElement('a');
+      a.href  = `/applicant/jobs/${job.id}`;
+      a.style.cssText = 'display:block;background:linear-gradient(135deg,#f8fafc,#f0f7ff);border:1px solid var(--border);border-radius:12px;padding:14px 16px;transition:all .2s;text-decoration:none;color:inherit;';
+      a.onmouseover = () => { a.style.borderColor = 'var(--primary)'; a.style.transform = 'translateY(-3px)'; };
+      a.onmouseout  = () => { a.style.borderColor = 'var(--border)';  a.style.transform = ''; };
+      a.innerHTML = `
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+          <div style="width:34px;height:34px;background:var(--primary);border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:13px;flex-shrink:0;">${letter}</div>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:var(--text-primary);">${job.title}</div>
+            <div style="font-size:11px;color:var(--text-muted);">${job.company || ''}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">${catHtml}${salHtml}</div>`;
+      grid.appendChild(a);
+    });
+  } catch(e) {
+    console.error('[Dashboard] Failed to refresh jobs:', e);
+  }
+}
+
+// Initial load + SSE listener + 30-second poll
+document.addEventListener('DOMContentLoaded', () => {
+  refreshDashJobs();
+
+  // SSE — react instantly when employer posts
+  const es = new EventSource('/api/jobs/stream');
+  es.addEventListener('job-update', () => refreshDashJobs());
+
+  // Fallback poll every 30 s (handles SSE disconnects)
+  setInterval(refreshDashJobs, 30_000);
+});
+/*]]>*/
+</script>
+</body>
+</html>

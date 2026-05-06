@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Professional Events | CareerConnect</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}"/>
+  <style>
+    .events-header {
+      margin-bottom: 40px;
+    }
+    .events-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+    }
+    
+    .event-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.2s ease;
+      box-shadow: var(--shadow-sm);
+      position: relative;
+    }
+    .event-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-md);
+      border-color: #cbd5e1;
+    }
+    
+    .event-icon-wrapper {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: white;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2), 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .icon-HACKATHON { background: linear-gradient(135deg, #8b5cf6, #c084fc); }
+    .icon-WORKSHOP { background: linear-gradient(135deg, #10b981, #34d399); }
+    .icon-CODING_COMPETITION { background: linear-gradient(135deg, #f97316, #fb923c); }
+    .icon-WEBINAR { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
+    .icon-OTHER { background: linear-gradient(135deg, #64748b, #94a3b8); }
+    
+    .event-category {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .event-title {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      line-height: 1.4;
+      color: var(--text-primary);
+    }
+    .event-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 24px;
+      flex: 1;
+    }
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .meta-item svg { width: 16px; height: 16px; stroke-width: 2; flex-shrink: 0; }
+    
+    .event-footer {
+      display: flex;
+      gap: 10px;
+      margin-top: auto;
+    }
+    
+    .filter-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+    }
+    .filter-pill {
+      padding: 8px 18px;
+      border-radius: 999px;
+      background: white;
+      border: 1px solid var(--border);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      transition: all 0.2s;
+      text-decoration: none;
+      box-shadow: var(--shadow-sm);
+    }
+    .filter-pill:hover {
+      background: #f8fafc;
+      color: var(--text-primary);
+    }
+    .filter-pill.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+      box-shadow: 0 4px 12px rgba(26, 26, 26, 0.2);
+    }
+    .text-gradient {
+      background: linear-gradient(135deg, #2563eb, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body class="page-wrapper">
+
+<div th:replace="~{fragments/layout :: dashNavbar}"></div>
+
+<div class="dashboard-layout no-right">
+  
+  <div th:replace="~{fragments/layout :: autoSidebar(user=${user}, activePage='events')}"></div>
+
+  <main>
+    <div class="events-header">
+      <h1 style="font-size: 36px; font-weight: 800; margin-bottom: 8px; letter-spacing: -1px;">
+        Discover <span class="text-gradient">Events</span>
+      </h1>
+      <p style="color: var(--text-secondary); font-size: 15px;">Upskill, network, and grow with professional workshops and hackathons.</p>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-bar">
+      <a th:href="@{/events}" class="filter-pill" th:classappend="${selectedCategory == null ? ' active' : ''}">All Events</a>
+      <a th:each="cat : ${categories}"
+         th:href="@{/events(category=${cat.name()})}"
+         class="filter-pill"
+         th:classappend="${selectedCategory != null and selectedCategory == cat ? ' active' : ''}"
+         th:text="${#strings.replace(cat.name(), '_', ' ')}">Category</a>
+    </div>
+
+    <div class="events-grid">
+      <div th:each="event : ${events}" class="event-card">
+        <div class="event-icon-wrapper" th:classappend="${event.category != null ? 'icon-' + event.category.name() : 'icon-OTHER'}">
+          <span th:text="${event.category != null and event.category.name() == 'HACKATHON' ? '🏆' : (event.category != null and event.category.name() == 'WORKSHOP' ? '🛠️' : (event.category != null and event.category.name() == 'CODING_COMPETITION' ? '💻' : '🎙️'))}">🎯</span>
+        </div>
+        
+        <div class="event-category" th:text="${event.category != null ? event.category.name().replace('_', ' ') : 'EVENT'}">Category</div>
+        <h3 class="event-title" th:text="${event.title}">Event Title</h3>
+        
+        <div class="event-meta">
+          <div class="meta-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span th:text="${event.eventDate != null ? #temporals.format(event.eventDate, 'MMMM dd, yyyy') : 'TBD'}">Date</span>
+          </div>
+          <div class="meta-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <span th:text="${event.location}">Location</span>
+          </div>
+          <div class="meta-item" th:if="${event.organizer != null and !event.organizer.isEmpty()}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span th:text="${event.organizer}">Organizer</span>
+          </div>
+        </div>
+        
+        <div class="event-footer">
+          <a th:href="@{'/events/' + ${event.id}}" class="btn btn-ghost btn-sm" style="flex:1;">View Details</a>
+          <a th:if="${event.registrationLink}" th:href="${event.registrationLink}" target="_blank" class="btn btn-primary btn-sm" style="flex:1;">Register</a>
+        </div>
+      </div>
+
+      <div th:if="${#lists.isEmpty(events)}" class="empty-state" style="grid-column: 1 / -1;">
+        <div class="empty-icon">🗓️</div>
+        <h3 class="empty-title">No events found</h3>
+        <p class="empty-desc">Check back later or try a different category.</p>
+        <a th:href="@{/events}" class="btn btn-outline">Show All Events</a>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

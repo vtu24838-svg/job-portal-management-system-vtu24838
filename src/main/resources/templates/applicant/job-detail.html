@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title th:text="${job.title} + ' — CareerConnect'">Job Detail</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}"/>
+</head>
+<body class="page-wrapper">
+
+<div th:replace="~{fragments/layout :: dashNavbar}"></div>
+
+<div class="dashboard-layout no-right">
+
+  <div th:replace="~{fragments/layout :: applicantSidebar(user=${user}, activePage='jobs')}"></div>
+
+  <main>
+    <!-- Flash -->
+    <div th:if="${successMsg}" class="alert alert-success">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+      <span th:text="${successMsg}"></span>
+    </div>
+    <div th:if="${errorMsg}" class="alert alert-danger">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+      <span th:text="${errorMsg}"></span>
+    </div>
+
+    <!-- Back Nav -->
+    <div style="margin-bottom:16px;">
+      <a th:href="@{/applicant/jobs}" style="font-size:13px; color:var(--text-secondary); display:inline-flex; align-items:center; gap:4px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        Back to Jobs
+      </a>
+    </div>
+
+    <!-- Job Header -->
+    <div class="card mb-3">
+      <div class="flex-between" style="flex-wrap:wrap; gap:16px;">
+        <div style="display:flex; gap:16px; align-items:flex-start;">
+          <div class="job-icon" style="width:56px; height:56px; font-size:20px;"
+               th:text="${job.company != null and !job.company.isEmpty() ? job.company.substring(0,1).toUpperCase() : 'J'}">J</div>
+          <div>
+            <h1 style="font-size:22px; font-weight:700; margin-bottom:4px;" th:text="${job.title}">Title</h1>
+            <div style="font-size:15px; color:var(--text-secondary); font-weight:500;" th:text="${job.company}">Company</div>
+            <div class="job-meta mt-2">
+              <span class="job-tag" th:if="${job.location != null}">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <span th:text="${job.location}"></span>
+              </span>
+              <span class="job-tag" th:if="${job.type != null}" th:text="${job.type}"></span>
+              <span class="job-tag" th:if="${job.salary != null and !job.salary.isEmpty()}" th:text="${job.salary}"></span>
+              <span class="badge badge-success" th:if="${job.status.name() == 'OPEN'}">Open</span>
+            </div>
+          </div>
+        </div>
+        <!-- Apply Button -->
+        <div>
+          <div th:if="${alreadyApplied}" class="badge badge-success" style="padding:10px 18px; font-size:13px;">✓ Already Applied</div>
+
+          <!-- No resume: show disabled button with tooltip -->
+          <div th:if="${!alreadyApplied and !hasResume}"
+               title="Upload your resume first to apply"
+               style="position:relative;display:inline-block;">
+            <button type="button" class="btn btn-primary btn-lg"
+                    style="opacity:0.5;cursor:not-allowed;" disabled>Apply Now 🔒</button>
+          </div>
+
+          <!-- Has resume: normal apply button -->
+          <button th:if="${!alreadyApplied and hasResume}" type="button" class="btn btn-primary btn-lg"
+                  onclick="document.getElementById('applyModal').style.display='flex'">
+            Apply Now
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resume required warning -->
+    <div th:if="${!hasResume}"
+         style="display:flex;align-items:center;gap:14px;background:#fff7ed;border:1.5px solid #fed7aa;border-radius:12px;padding:14px 20px;margin-bottom:16px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:700;color:#9a3412;">Resume Required to Apply</div>
+        <div style="font-size:12px;color:#c2410c;margin-top:2px;">Please upload your PDF or DOCX resume in your profile before applying. This lets employers review your background.</div>
+      </div>
+      <a th:href="@{/applicant/profile}" style="padding:7px 16px;background:#ea580c;color:white;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap;">Upload Resume</a>
+    </div>
+
+    <!-- Job Details -->
+    <div style="display:grid; grid-template-columns: 2fr 1fr; gap:16px; flex-wrap:wrap;">
+      <div>
+        <div class="card mb-3">
+          <div class="card-title">Job Description</div>
+          <div style="font-size:14px; line-height:1.8; color:var(--text-secondary); white-space:pre-line;"
+               th:text="${job.description}">Description</div>
+        </div>
+        <div class="card" th:if="${job.requirements != null and !job.requirements.isEmpty()}">
+          <div class="card-title">Requirements</div>
+          <div style="font-size:14px; line-height:1.8; color:var(--text-secondary); white-space:pre-line;"
+               th:text="${job.requirements}">Requirements</div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-title">Job Overview</div>
+          <div style="display:flex; flex-direction:column; gap:14px;">
+            <div th:if="${job.location}">
+              <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; font-weight:600; letter-spacing:0.5px;">Location</div>
+              <div style="font-size:14px; font-weight:500; margin-top:2px;" th:text="${job.location}"></div>
+            </div>
+            <div th:if="${job.type}">
+              <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; font-weight:600; letter-spacing:0.5px;">Job Type</div>
+              <div style="font-size:14px; font-weight:500; margin-top:2px;" th:text="${job.type}"></div>
+            </div>
+            <div th:if="${job.salary}">
+              <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; font-weight:600; letter-spacing:0.5px;">Salary</div>
+              <div style="font-size:14px; font-weight:500; margin-top:2px; color:var(--success);" th:text="${job.salary}"></div>
+            </div>
+            <div>
+              <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; font-weight:600; letter-spacing:0.5px;">Posted by</div>
+              <div style="font-size:14px; font-weight:500; margin-top:2px;" th:text="${job.employer.name}"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Apply Modal -->
+<div id="applyModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center; padding:20px;">
+  <div style="background:white; border-radius:16px; padding:32px; width:100%; max-width:500px; box-shadow:var(--shadow);">
+    <h2 style="font-size:18px; font-weight:700; margin-bottom:4px;">Apply for this Role</h2>
+    <p style="font-size:13px; color:var(--text-secondary); margin-bottom:20px;" th:text="${job.title} + ' at ' + ${job.company}">Job title</p>
+    <form th:action="@{/applicant/apply/{id}(id=${job.id})}" method="post">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+      <div class="form-group">
+        <label class="form-label">Cover Letter <span style="font-weight:400; color:var(--text-muted);">(optional)</span></label>
+        <textarea name="coverLetter" class="form-control" rows="5"
+                  placeholder="Tell the employer why you're a great fit for this role..."></textarea>
+      </div>
+      <div style="display:flex; gap:10px; justify-content:flex-end;">
+        <button type="button" class="btn btn-ghost" onclick="document.getElementById('applyModal').style.display='none'">Cancel</button>
+        <button type="submit" class="btn btn-primary">Submit Application</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>
